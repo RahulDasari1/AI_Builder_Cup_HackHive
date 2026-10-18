@@ -1,15 +1,15 @@
 export const environment = {
   production: true,
   firebase: {
-    apiKey: '__FIREBASE_API_KEY__',
-    authDomain: '__FIREBASE_AUTH_DOMAIN__',
-    projectId: '__FIREBASE_PROJECT_ID__',
-    appId: '__FIREBASE_APP_ID__',
-    messagingSenderId: '__FIREBASE_MESSAGING_SENDER_ID__'
+    apiKey: 'AIzaSyCehb0V7ANLfu-87Ze5PLYDSZqdMO27Ibo',
+    authDomain: 'aibuildercup2026-26b22.firebaseapp.com',
+    projectId: 'aibuildercup2026-26b22',
+    appId: '1:332996173028:web:abd61c01a6c48afa5fe0f1',
+    messagingSenderId: '332996173028'
   },
   services: {
-    learning: '__LEARNING_API_URL__',
-    ai: '__AI_API_URL__',
-    reports: '__REPORTS_API_URL__'
+    learning: 'https://learning-api-332996173028.asia-northeast1.run.app',
+    ai: 'https://ai-api-332996173028.asia-northeast1.run.app',
+    reports: 'https://reports-api-332996173028.asia-northeast1.run.app'
   }
 };

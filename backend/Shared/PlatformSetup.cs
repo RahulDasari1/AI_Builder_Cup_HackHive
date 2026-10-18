@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using HackHive.Shared.Repositories;
+using HackHive.Shared.Services;
 
 namespace HackHive.Platform;
 
@@ -50,8 +52,21 @@ public static class PlatformSetup
                 }));
         });
         builder.Services.AddCors(options => options.AddPolicy("web", policy =>
-            policy.WithOrigins(webOrigin).AllowAnyHeader().AllowAnyMethod()));
+            policy.WithOrigins(webOrigin, "https://aibuildercup2026-26b22.web.app", "https://aibuildercup2026-26b22.firebaseapp.com")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()));
+
         builder.Services.AddSingleton(_ => FirestoreDb.Create(projectId));
+        builder.Services.AddHttpClient("gemini", client =>
+            client.BaseAddress = new Uri("https://generativelanguage.googleapis.com/"));
+
+        // Register Enterprise Data Access Layer (DAL) & Domain Services
+        builder.Services.AddScoped<ILearningRepository, FirestoreLearningRepository>();
+        builder.Services.AddScoped<IAssessmentRepository, FirestoreAssessmentRepository>();
+        builder.Services.AddScoped<IReportRepository, FirestoreReportRepository>();
+        builder.Services.AddScoped<IUserRepository, FirestoreUserRepository>();
+        builder.Services.AddScoped<IGeminiAiService, GeminiAiService>();
+
         builder.Services.AddHealthChecks();
         return builder;
     }

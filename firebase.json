@@ -4,6 +4,7 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
+    "site": "aibuildercup2026-26b22",
     "public": "frontend/dist/frontend/browser",
     "ignore": [
       "firebase.json",

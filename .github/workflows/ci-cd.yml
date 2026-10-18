@@ -35,6 +35,8 @@ jobs:
           dotnet build backend/Services/Learning.Api/Learning.Api.csproj --configuration Release
           dotnet build backend/Services/AI.Api/AI.Api.csproj --configuration Release
           dotnet build backend/Services/Reports.Api/Reports.Api.csproj --configuration Release
+      - name: Run .NET automated tests
+        run: dotnet test backend/Tests/HackHive.Tests.csproj --configuration Release --verbosity normal
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

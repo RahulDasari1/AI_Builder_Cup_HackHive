@@ -9,51 +9,81 @@ export class FirebaseClientService {
   private app?: FirebaseApp;
 
   async signIn(providerName: 'google' | 'microsoft'): Promise<User> {
+    if (!this.isConfigured) {
+      throw new Error('Firebase credentials are not configured.');
+    }
+
     const { GoogleAuthProvider, OAuthProvider, getAuth, signInWithPopup } = await import('firebase/auth');
     const provider = providerName === 'google'
       ? new GoogleAuthProvider()
       : new OAuthProvider('microsoft.com');
+
     provider.setCustomParameters({ prompt: 'select_account' });
     const result = await signInWithPopup(getAuth(await this.firebaseApp()), provider);
     return result.user;
   }
 
+  async signOut(): Promise<void> {
+    if (this.isConfigured) {
+      try {
+        const { getAuth, signOut } = await import('firebase/auth');
+        await signOut(getAuth(await this.firebaseApp()));
+      } catch {
+        // Silently handled
+      }
+    }
+  }
+
   async getCurrentUser(): Promise<User | null> {
-    const { getAuth, onAuthStateChanged } = await import('firebase/auth');
-    const auth = getAuth(await this.firebaseApp());
-    return new Promise((resolve, reject) => {
-      let unsubscribe = () => {};
-      unsubscribe = onAuthStateChanged(auth, (user) => {
-        unsubscribe();
-        resolve(user);
-      }, (error) => {
-        unsubscribe();
-        reject(error);
+    if (!this.isConfigured) return null;
+    try {
+      const { getAuth, onAuthStateChanged } = await import('firebase/auth');
+      const auth = getAuth(await this.firebaseApp());
+      return new Promise((resolve, reject) => {
+        let unsubscribe = () => {};
+        unsubscribe = onAuthStateChanged(auth, (user) => {
+          unsubscribe();
+          resolve(user);
+        }, (error) => {
+          unsubscribe();
+          reject(error);
+        });
       });
-    });
+    } catch {
+      return null;
+    }
   }
 
   async ensureUserProfile(user: User): Promise<void> {
-    const { doc, getDoc, getFirestore, serverTimestamp, setDoc } = await import('firebase/firestore');
-    const profileRef = doc(getFirestore(await this.firebaseApp()), 'Users', user.uid);
-    const existing = await getDoc(profileRef);
-    const profile = existing.exists()
-      ? { displayName: user.displayName, photoURL: user.photoURL, updatedAt: serverTimestamp() }
-      : {
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        };
-    await setDoc(profileRef, profile, { merge: true });
+    if (!this.isConfigured) return;
+    try {
+      const { doc, getDoc, getFirestore, serverTimestamp, setDoc } = await import('firebase/firestore');
+      const profileRef = doc(getFirestore(await this.firebaseApp()), 'Users', user.uid);
+      const existing = await getDoc(profileRef);
+      const profile = existing.exists()
+        ? { displayName: user.displayName, photoURL: user.photoURL, updatedAt: serverTimestamp() }
+        : {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          };
+      await setDoc(profileRef, profile, { merge: true });
+    } catch {
+      // Offline/demo tolerance
+    }
   }
 
   async getRole(user: User): Promise<'student' | 'teacher' | 'admin'> {
-    const token = await user.getIdTokenResult();
-    const role = token.claims['role'];
-    return role === 'teacher' || role === 'admin' ? role : 'student';
+    try {
+      const token = await user.getIdTokenResult();
+      const role = token.claims['role'];
+      return role === 'teacher' || role === 'admin' ? role : 'student';
+    } catch {
+      return 'student';
+    }
   }
 
   async watchProgress(
@@ -61,18 +91,29 @@ export class FirebaseClientService {
     onValue: (progress: Record<string, unknown>[]) => void,
     onError: (error: Error) => void
   ): Promise<() => void> {
-    const { collection, getFirestore, onSnapshot, query, where } = await import('firebase/firestore');
-    const db = getFirestore(await this.firebaseApp());
-    return onSnapshot(
-      query(collection(db, 'Progress'), where('uid', '==', uid)),
-      (snapshot) => onValue(snapshot.docs.map((document) => document.data())),
-      onError
-    );
+    if (!this.isConfigured) return () => {};
+    try {
+      const { collection, getFirestore, onSnapshot, query, where } = await import('firebase/firestore');
+      const db = getFirestore(await this.firebaseApp());
+      return onSnapshot(
+        query(collection(db, 'Progress'), where('uid', '==', uid)),
+        (snapshot) => onValue(snapshot.docs.map((document) => document.data())),
+        onError
+      );
+    } catch (err) {
+      onError(err as Error);
+      return () => {};
+    }
   }
 
   async getIdToken(): Promise<string | undefined> {
-    const { getAuth } = await import('firebase/auth');
-    return getAuth(await this.firebaseApp()).currentUser?.getIdToken();
+    if (!this.isConfigured) return undefined;
+    try {
+      const { getAuth } = await import('firebase/auth');
+      return getAuth(await this.firebaseApp()).currentUser?.getIdToken();
+    } catch {
+      return undefined;
+    }
   }
 
   private async firebaseApp(): Promise<FirebaseApp> {

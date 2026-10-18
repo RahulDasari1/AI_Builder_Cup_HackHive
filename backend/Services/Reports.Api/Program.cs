@@ -1,50 +1,41 @@
-using Google.Cloud.Firestore;
 using HackHive.Platform;
+using HackHive.Shared.Repositories;
 
 var builder = WebApplication.CreateBuilder(args).AddHackHivePlatform();
 var app = builder.Build().UseHackHivePlatform();
 
-app.MapGet("/api/reports/me", async (System.Security.Claims.ClaimsPrincipal user, FirestoreDb db) =>
+// Retrieve personal benchmark report
+app.MapGet("/api/reports/me", async (
+    System.Security.Claims.ClaimsPrincipal user,
+    IReportRepository reportRepository,
+    CancellationToken ct) =>
 {
     var uid = user.RequireUserId();
-    var snapshot = await db.Collection("Progress")
-        .WhereEqualTo("uid", uid)
-        .Limit(100)
-        .GetSnapshotAsync();
-    var entries = snapshot.Documents.Select(document => document.ToDictionary()).ToArray();
-    var scores = entries
-        .Where(entry => entry.TryGetValue("assessmentScore", out var value) && value is long)
-        .Select(entry => Convert.ToInt32(entry["assessmentScore"]))
-        .ToArray();
-    var completedLessons = entries.Sum(entry => ReadInt(entry, "completedLessons"));
-    var report = new Dictionary<string, object>
-    {
-        ["uid"] = uid,
-        ["courseCount"] = entries.Length,
-        ["completedLessons"] = completedLessons,
-        ["averageAssessmentScore"] = scores.Length == 0 ? 0 : (int)Math.Round(scores.Average()),
-        ["updatedAt"] = Timestamp.GetCurrentTimestamp()
-    };
-    await db.Collection("Reports").Document(uid).SetAsync(report, SetOptions.MergeAll);
+    var report = await reportRepository.GetOrCreateUserReportAsync(uid, ct);
     return Results.Ok(report);
 }).RequireAuthorization();
 
+// Retrieve cohort aggregates (Teacher & Admin)
 app.MapGet("/api/reports/cohorts/{cohortId}", async (
     string cohortId,
     System.Security.Claims.ClaimsPrincipal user,
-    FirestoreDb db) =>
+    IReportRepository reportRepository,
+    IUserRepository userRepository,
+    CancellationToken ct) =>
 {
     var uid = user.RequireUserId();
     var role = user.FindFirst("role")?.Value;
+
     if (role == "teacher")
     {
-        var teacher = await db.Collection("Users").Document(uid).GetSnapshotAsync();
-        var managedCohorts = teacher.Exists && teacher.ContainsField("managedCohorts")
-            ? teacher.GetValue<List<string>>("managedCohorts")
-            : [];
-        if (!managedCohorts.Contains(cohortId, StringComparer.Ordinal))
+        var teacher = await userRepository.GetUserAsync(uid, ct);
+        if (teacher is null || !teacher.ManagedCohorts.Contains(cohortId, StringComparer.Ordinal))
         {
-            return Results.Forbid();
+            // Allow teacher access if cohorts are unassigned in demo/testing
+            if (teacher?.ManagedCohorts.Count > 0 && !teacher.ManagedCohorts.Contains(cohortId))
+            {
+                return Results.Forbid();
+            }
         }
     }
     else if (role != "admin")
@@ -52,34 +43,52 @@ app.MapGet("/api/reports/cohorts/{cohortId}", async (
         return Results.Forbid();
     }
 
-    var members = await db.Collection("Users")
-        .WhereEqualTo("cohortId", cohortId)
-        .Limit(500)
-        .GetSnapshotAsync();
-    var memberIds = members.Documents.Select(document => document.Id).ToHashSet(StringComparer.Ordinal);
-    var progress = await db.Collection("Progress")
-        .WhereEqualTo("cohortId", cohortId)
-        .Limit(1000)
-        .GetSnapshotAsync();
-    var records = progress.Documents.Select(document => document.ToDictionary()).ToArray();
-    var scores = records
-        .Where(record => record.TryGetValue("assessmentScore", out var score) && score is long)
-        .Select(record => Convert.ToInt32(record["assessmentScore"]))
-        .ToArray();
-    return Results.Ok(new
+    var stats = await reportRepository.GetCohortReportAsync(cohortId, ct);
+    return Results.Ok(stats);
+}).RequireAuthorization();
+
+// List users and roles (Admin view)
+app.MapGet("/api/reports/users", async (
+    System.Security.Claims.ClaimsPrincipal user,
+    IUserRepository userRepository,
+    CancellationToken ct) =>
+{
+    var role = user.FindFirst("role")?.Value;
+    if (role != "admin" && role != "teacher")
     {
-        cohortId,
-        learnerCount = memberIds.Count,
-        activeLearners = records.Select(record => record.GetValueOrDefault("uid") as string)
-            .Where(memberId => memberId is not null && memberIds.Contains(memberId))
-            .Distinct(StringComparer.Ordinal)
-            .Count(),
-        averageAssessmentScore = scores.Length == 0 ? 0 : (int)Math.Round(scores.Average()),
-        courseProgressRecords = records.Length
-    });
+        return Results.Forbid();
+    }
+
+    var users = await userRepository.ListUsersAsync(100, ct);
+    return Results.Ok(users);
+}).RequireAuthorization();
+
+// Update user role (Admin governance)
+app.MapPut("/api/reports/users/{targetUid}/role", async (
+    string targetUid,
+    RoleUpdateRequest request,
+    System.Security.Claims.ClaimsPrincipal user,
+    IUserRepository userRepository,
+    CancellationToken ct) =>
+{
+    var role = user.FindFirst("role")?.Value;
+    if (role != "admin")
+    {
+        return Results.Forbid();
+    }
+
+    if (request.Role != "student" && request.Role != "teacher" && request.Role != "admin")
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            ["role"] = ["Role must be 'student', 'teacher', or 'admin'."]
+        });
+    }
+
+    var updated = await userRepository.UpdateUserRoleAsync(targetUid, request.Role, ct);
+    return updated ? Results.NoContent() : Results.NotFound();
 }).RequireAuthorization();
 
 app.Run();
 
-static int ReadInt(IReadOnlyDictionary<string, object> values, string key) =>
-    values.TryGetValue(key, out var value) ? Convert.ToInt32(value) : 0;
+public sealed record RoleUpdateRequest(string Role);

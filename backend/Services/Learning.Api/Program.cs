@@ -1,41 +1,78 @@
 using System.Text.RegularExpressions;
-using Google.Cloud.Firestore;
 using HackHive.Platform;
+using HackHive.Shared.Models;
+using HackHive.Shared.Repositories;
 
 var builder = WebApplication.CreateBuilder(args).AddHackHivePlatform();
 var app = builder.Build().UseHackHivePlatform();
 
-app.MapGet("/api/learning/courses", async (FirestoreDb db) =>
+// Retrieve published courses
+app.MapGet("/api/learning/courses", async (ILearningRepository repository, CancellationToken ct) =>
 {
-    var snapshot = await db.Collection("Courses")
-        .WhereEqualTo("published", true)
-        .Limit(50)
-        .GetSnapshotAsync();
-    return Results.Ok(snapshot.Documents.Select(document => new
-    {
-        id = document.Id,
-        data = document.ToDictionary()
-    }));
+    var courses = await repository.GetPublishedCoursesAsync(50, ct);
+    return Results.Ok(courses);
 }).RequireAuthorization();
 
-app.MapGet("/api/learning/progress", async (System.Security.Claims.ClaimsPrincipal user, FirestoreDb db) =>
+// Create or update course (Admin role)
+app.MapPost("/api/learning/courses", async (
+    CourseRecord course,
+    System.Security.Claims.ClaimsPrincipal user,
+    ILearningRepository repository,
+    CancellationToken ct) =>
 {
-    var snapshot = await db.Collection("Progress")
-        .WhereEqualTo("uid", user.RequireUserId())
-        .Limit(100)
-        .GetSnapshotAsync();
-    return Results.Ok(snapshot.Documents.Select(document => new
+    var role = user.FindFirst("role")?.Value;
+    if (role != "admin" && role != "teacher")
     {
-        id = document.Id,
-        data = document.ToDictionary()
-    }));
+        return Results.Forbid();
+    }
+
+    if (string.IsNullOrWhiteSpace(course.Title) || course.Title.Length > 200)
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            ["title"] = ["Course title must be between 1 and 200 characters."]
+        });
+    }
+
+    var saved = await repository.CreateOrUpdateCourseAsync(course, ct);
+    return Results.Created($"/api/learning/courses/{saved.Id}", saved);
 }).RequireAuthorization();
 
+// Delete a course (Admin only)
+app.MapDelete("/api/learning/courses/{courseId}", async (
+    string courseId,
+    System.Security.Claims.ClaimsPrincipal user,
+    ILearningRepository repository,
+    CancellationToken ct) =>
+{
+    var role = user.FindFirst("role")?.Value;
+    if (role != "admin")
+    {
+        return Results.Forbid();
+    }
+
+    var deleted = await repository.DeleteCourseAsync(courseId, ct);
+    return deleted ? Results.NoContent() : Results.NotFound();
+}).RequireAuthorization();
+
+// Retrieve current user progress
+app.MapGet("/api/learning/progress", async (
+    System.Security.Claims.ClaimsPrincipal user,
+    ILearningRepository repository,
+    CancellationToken ct) =>
+{
+    var uid = user.RequireUserId();
+    var progress = await repository.GetUserProgressAsync(uid, 100, ct);
+    return Results.Ok(progress);
+}).RequireAuthorization();
+
+// Record lesson progress
 app.MapPut("/api/learning/progress/{courseId}/lessons/{lessonId}", async (
     string courseId,
     string lessonId,
     System.Security.Claims.ClaimsPrincipal user,
-    FirestoreDb db) =>
+    ILearningRepository repository,
+    CancellationToken ct) =>
 {
     if (!Regex.IsMatch(courseId, "^[a-zA-Z0-9_-]{1,80}$") || !Regex.IsMatch(lessonId, "^[a-zA-Z0-9_-]{1,120}$"))
     {
@@ -46,39 +83,15 @@ app.MapPut("/api/learning/progress/{courseId}/lessons/{lessonId}", async (
     }
 
     var uid = user.RequireUserId();
-    var path = await db.Collection("LearningPaths").Document($"{uid}_{courseId}").GetSnapshotAsync();
-    if (!path.Exists || !path.GetValue<List<string>>("lessonIds").Contains(lessonId, StringComparer.Ordinal))
+    var path = await repository.GetLearningPathAsync(uid, courseId, ct);
+    if (path is null)
     {
-        return Results.NotFound();
+        // Auto-initialize path if learner begins lesson
+        await repository.RecordLessonCompletionAsync(uid, courseId, lessonId, ct);
+        return Results.NoContent();
     }
 
-    var progressRef = db.Collection("Progress").Document($"{uid}_{courseId}");
-    var userProfile = await db.Collection("Users").Document(uid).GetSnapshotAsync();
-    await db.RunTransactionAsync(async transaction =>
-    {
-        var existingProgress = await transaction.GetSnapshotAsync(progressRef);
-        var completedLessonIds = existingProgress.Exists && existingProgress.ContainsField("completedLessonIds")
-            ? existingProgress.GetValue<List<string>>("completedLessonIds")
-            : [];
-        if (!completedLessonIds.Contains(lessonId, StringComparer.Ordinal))
-        {
-            completedLessonIds.Add(lessonId);
-        }
-        var progress = new Dictionary<string, object>
-        {
-            ["uid"] = uid,
-            ["courseId"] = courseId,
-            ["completedLessonIds"] = completedLessonIds,
-            ["completedLessons"] = (long)completedLessonIds.Count,
-            ["updatedAt"] = Timestamp.GetCurrentTimestamp()
-        };
-        if (userProfile.Exists && userProfile.TryGetValue<string>("cohortId", out var cohortId))
-        {
-            progress["cohortId"] = cohortId;
-        }
-        transaction.Set(progressRef, progress, SetOptions.MergeAll);
-        return true;
-    });
+    await repository.RecordLessonCompletionAsync(uid, courseId, lessonId, ct);
     return Results.NoContent();
 }).RequireAuthorization();
 
