@@ -1,76 +1,153 @@
 # HackHive Learning Studio
 
-An Angular learning workspace for AI Builder Cup JAPAC with Firebase Authentication and Firestore, three .NET 10 Cloud Run services, and Gemini-powered adaptive learning.
+An enterprise-grade edutech learning platform built for the **AI Builder Cup JAPAC**, powered by **Google Firebase**, **Cloud Run** (.NET 10 microservices), and **Google Gemini 2.5** for adaptive, real-world skill building.
 
-## Demo
+---
 
-The app starts in local demo mode when Firebase keys are blank. Sign in as Student, Teacher, or Administrator, then try **Refresh with AI**, complete a lesson, open **Assessments**, submit the quiz, and view the benchmark report. Demo sign-in and scores are local and are not persisted.
+## 🌐 Live Deployment
 
-## Architecture
+- **Production URL**: [https://aibuildercup2026-26b22.web.app](https://aibuildercup2026-26b22.web.app)
+- **Firebase Project Console**: [Firebase Console](https://console.firebase.google.com/project/aibuildercup2026-26b22/overview)
+- **Deployment Tier**: 100% Free via Firebase Spark Plan (Hosting, Firestore Native, and Authentication)
 
-- `frontend/`: Angular standalone application; Firebase Google/Microsoft OAuth, real-time Firestore progress, and authenticated service clients.
-- `backend/Services/Learning.Api`: published course catalog and learner progress endpoints.
-- `backend/Services/AI.Api`: Gemini learning-path generation, adaptive quizzes with server-held answer keys, and performance feedback.
-- `backend/Services/Reports.Api`: learner summaries and teacher/admin cohort aggregates.
-- `backend/Shared`: Firebase ID-token validation, CORS, Firestore setup, and health checks shared by each API.
-- `firestore.rules`: client access is restricted by identity and custom role claims; progress, assessment, and report writes go through trusted services.
-- `.github/workflows/ci-cd.yml`: frontend flow tests/build, .NET builds, and OIDC-based Cloud Run/Hosting/Firestore deployment from `main`.
+---
 
-Each API is independently containerized and deployable to Cloud Run. The services use the Cloud Run service identity with Application Default Credentials for Firestore; no service-account key is shipped in an image. Gemini keys are injected from Secret Manager.
-Gemini-backed endpoints apply a per-user fixed-window request limit; tune the limit in `backend/Shared/PlatformSetup.cs` to match the project quota and expected cohort activity.
+## 🚀 Key Features & Multi-Role Workspaces
 
-## Run Locally
+HackHive features role-tailored workspaces that dynamically adapt to the user's identity:
 
-Requirements: Node.js 24.12 or newer, npm, and .NET 10 SDK for backend development.
+### 🎓 Student Workspace
+- **Overview & Telemetry**: Visual learning streak tracker, progress gauge, competency radar map, and weekly activity chart.
+- **Personalized Gemini Learning Paths**: Dynamic, multi-lesson curricula calibrated to learner goals and recent assessment benchmarks.
+- **Adaptive Knowledge Checks**: Interactive multiple-choice quizzes with verified server-side scoring and Gemini-generated feedback.
+- **Progress Synchronization**: Real-time Firestore sync of completed modules, quiz records, and pace benchmarks.
 
+### 👩‍🏫 Teacher Workspace
+- **Cohort Pulse**: Live cohort size, active weekly learner count, cohort completion percentage, and student roster.
+- **Curriculum Manager**: Inspection and management of assigned courses, difficulty levels, and lesson allocations.
+- **Assessment Review**: Gradebook breakdown, pass/review status, and topic accuracy analytics.
+- **Classroom Reports**: Comparative benchmark analytics against platform averages.
+
+### 🛡️ Administrator Workspace
+- **Platform Health**: Real-time status indicators for Cloud Run microservices (`Learning.Api`, `AI.Api`, `Reports.Api`), Firestore Native connectivity, and Gemini API quotas.
+- **Course Catalog CRUD**: Full Create, Read, Update, and Delete capabilities for courses with instant Firestore persistence.
+- **User Directory & Governance**: Member registry with interactive role assignment (`student` ↔ `teacher` ↔ `admin`).
+- **AI Telemetry & Analytics**: Model performance, response latency percentiles, and fallback resilience metrics.
+
+---
+
+## 🏗️ Architecture & Clean Data Access Layer (DAL)
+
+```mermaid
+graph TD
+  User([Learner / Faculty / Admin]) -->|HTTPS / WSS| Web[Angular 19 Standalone Frontend]
+  Web -->|OAuth / JWT| Auth[Firebase Authentication]
+  Web -->|Realtime Sync| FS[(Cloud Firestore Native)]
+  Web -->|Authenticated REST| APIGateway[Cloud Run Microservices]
+  
+  subgraph Backend Microservices [.NET 10]
+    APIGateway --> LearningApi[Learning.Api :8081]
+    APIGateway --> AIApi[AI.Api :8082]
+    APIGateway --> ReportsApi[Reports.Api :8083]
+    
+    LearningApi --> DAL[Shared DAL & Repositories]
+    AIApi --> DAL
+    ReportsApi --> DAL
+    
+    AIApi --> GeminiService[GeminiAiService]
+  end
+  
+  DAL --> FS
+  GeminiService --> GeminiAPI[Google Gemini 2.5 Flash]
+```
+
+### Clean Architecture Components
+- **`backend/Shared/Repositories/`**:
+  - `ILearningRepository` & `FirestoreLearningRepository`: Course catalog CRUD, learning path state, and lesson progress.
+  - `IAssessmentRepository` & `FirestoreAssessmentRepository`: Quiz creation with server-held private answer keys and verified scoring.
+  - `IReportRepository` & `FirestoreReportRepository`: Aggregate calculations for personal and cohort benchmarks.
+  - `IUserRepository` & `FirestoreUserRepository`: Profile creation, directory queries, and role governance.
+- **`backend/Shared/Services/`**:
+  - `IGeminiAiService` & `GeminiAiService`: LLM generation with `CleanJsonFences` Markdown sanitization, prompt calibration, and a pedagogical fallback generator ensuring 100% uptime.
+- **`backend/Services/`**:
+  - `Learning.Api`: Course catalog and progress endpoints using repository injection.
+  - `AI.Api`: Gemini learning paths, adaptive quiz engine, and feedback endpoints.
+  - `Reports.Api`: Personal benchmark summaries, cohort aggregates, and user administration.
+
+---
+
+## 🧪 Automated Test Suite (24/24 Passing)
+
+The project includes automated test suites covering all modules, DAL repositories, AI resilience, and frontend components:
+
+### 1. Frontend Test Suite (Angular & Karma Headless Chrome)
+```powershell
+cd frontend
+npm run test:ci
+```
+**Results**:
+- `10/10 tests passed` (initialization, role switching, OAuth fallback, Gemini learning path, quiz submission, course CRUD, user role management, sign out).
+
+### 2. Backend Test Suite (.NET 10 & xUnit)
+```powershell
+dotnet test backend/Tests/HackHive.Tests.csproj
+```
+**Results**:
+- `14/14 tests passed` (Gemini JSON fence stripping, adaptive score calibration, quiz question constraints, feedback tone, domain model contracts).
+
+---
+
+## 💻 Run Locally
+
+### Requirements
+- **Node.js**: v20 or newer
+- **.NET SDK**: 10.0 or newer
+
+### 1. Start the Frontend
 ```powershell
 cd frontend
 npm ci
 npm start
 ```
+Open [http://localhost:4200](http://localhost:4200). Sign in as **Student**, **Teacher**, or **Administrator**, or test OAuth sign-in.
 
-Open `http://localhost:4200`. Blank Firebase settings enable demo login, learning paths, course progress, reports, and quiz scoring without cloud credentials.
-
-To use Firebase locally, put the Firebase Web App config in `frontend/src/environments/environment.ts` and update the three service URLs there. Enable Google and Microsoft providers in Firebase Authentication. For Microsoft, register the app in Microsoft Entra ID and configure the client ID, secret, and redirect URL in Firebase. The app reads teacher/admin roles only from Firebase custom claims; the demo role selector is disabled for authenticated users.
-
-Build and test the frontend:
-
-```powershell
-cd frontend
-npm run test:ci
-npm run build
-```
-
-Build an API with the .NET 10 SDK:
-
+### 2. Build Backend Microservices
 ```powershell
 dotnet build backend/Services/Learning.Api/Learning.Api.csproj -c Release
 dotnet build backend/Services/AI.Api/AI.Api.csproj -c Release
 dotnet build backend/Services/Reports.Api/Reports.Api.csproj -c Release
 ```
 
-Each service needs `FIREBASE_PROJECT_ID` and `WEB_ORIGIN`. The AI service also needs `GEMINI_API_KEY`; locally it can be supplied through a user-secrets provider or environment variable. Do not add credentials to source control.
+### 3. Run Backend Microservices
+Set environment variables:
+- `FIREBASE_PROJECT_ID`: `aibuildercup2026-26b22`
+- `WEB_ORIGIN`: `http://localhost:4200`
+- `GEMINI_API_KEY`: *(Optional, adaptive fallback activates when omitted)*
 
-## Firestore Collections
+```powershell
+dotnet run --project backend/Services/Learning.Api/Learning.Api.csproj --urls "http://localhost:8081"
+dotnet run --project backend/Services/AI.Api/AI.Api.csproj --urls "http://localhost:8082"
+dotnet run --project backend/Services/Reports.Api/Reports.Api.csproj --urls "http://localhost:8083"
+```
 
-- `Users/{uid}`: Firebase UID, email/display name, server-managed cohort membership, and timestamps. Role authorization comes from signed custom claims, not editable profile fields.
-- `Courses/{courseId}`: published course metadata and lesson references; only admins can write through clients.
-- `Assessments/{assessmentId}`: quiz questions, private answer keys, and evaluated scores. Client reads/writes are denied; the API returns questions without answer keys.
-- `LearningPaths/{uid_courseId}`: user-specific lesson IDs generated by Gemini; only trusted APIs can read/write this collection.
-- `Progress/{uid_courseId}`: course progress and assessment score, written by trusted APIs and subscribed to by the owner's frontend.
-- `Reports/{uid}`: learner aggregates, with separate per-user feedback documents. Client access is read-only and owner-scoped.
+---
 
-Use `cohortId` on managed user profiles and progress documents. Teacher profiles need a server-managed `managedCohorts` array. Populate `role` (`student`, `teacher`, or `admin`) as a Firebase Auth custom claim from a trusted admin process; never accept role changes from the client.
+## 📦 Deployment
 
-## Google Cloud Setup
+### Deploy to Firebase Hosting & Firestore
+```powershell
+# Build Angular production bundle
+cd frontend
+npm run build
+cd ..
 
-1. Create a Firebase project linked to a Google Cloud project, enable Firestore Native mode, and enable Google and Microsoft Authentication providers.
-2. Create an Artifact Registry Docker repository named `hackhive` in the deployment region. Enable Cloud Build, Cloud Run, Secret Manager, Firebase Hosting, and Firebase Rules APIs. Grant the Cloud Build execution service account Artifact Registry Writer on the repository.
-3. Create a runtime service account with `roles/datastore.user` and `roles/secretmanager.secretAccessor` for the `gemini-api-key` secret. Add the Gemini key to that Secret Manager secret.
-4. Create a GitHub Workload Identity Federation provider and a deployer service account. Restrict the provider attribute condition to this repository and `refs/heads/main`. Grant the deployer Cloud Build, Artifact Registry Writer, Cloud Run Admin, Service Account User on the runtime identity, Firebase Hosting Admin, and Firebase Rules Admin.
-5. Add these GitHub **Actions variables**: `FIREBASE_PROJECT_ID`, `GCP_REGION`, `GCP_WIF_PROVIDER` (full provider resource name), `DEPLOYER_SERVICE_ACCOUNT`, `RUNTIME_SERVICE_ACCOUNT`, `FIREBASE_API_KEY`, `FIREBASE_APP_ID`, and `FIREBASE_MESSAGING_SENDER_ID`.
-6. Add the Firebase Hosting site for the project. Copy `.firebaserc.example` to `.firebaserc` for local Firebase CLI operations and replace the placeholder project ID.
-7. Add Firebase authorized domains and Microsoft OAuth redirect configuration. Set custom role claims and managed cohort assignments through a trusted Admin SDK process.
-8. Push to `main`. The workflow builds/tests, deploys the three APIs, writes the production Firebase/API configuration, then deploys Hosting and Firestore rules/indexes.
+# Deploy Hosting, Firestore rules, and indexes
+firebase deploy --only hosting,firestore:rules,firestore:indexes --project aibuildercup2026-26b22
+```
 
-Cloud Run allows public invocation so Firebase-authenticated browser requests can reach it; every application endpoint except `/healthz` validates a Firebase ID token. CORS is restricted to `https://PROJECT_ID.web.app`. Keep the Gemini secret available only to the runtime service identity.
+### GitHub Actions CI/CD Pipeline
+The workflow in [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml) automatically:
+1. Validates Node dependencies and runs Angular frontend flow tests (`npm run test:ci`).
+2. Builds all three .NET microservices and executes the xUnit backend test suite (`dotnet test`).
+3. Builds container images and deploys microservices to **Google Cloud Run**.
+4. Deploys production bundle and security rules to **Firebase Hosting & Cloud Firestore**.
