@@ -1,0 +1,10 @@
+node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/src/environments/environment.production.local.ts
+firebase-debug.log
+.firebaserc
+*.user
+*.suo
+bin/
+obj/

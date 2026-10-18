@@ -1,0 +1,155 @@
+@if (!authenticated) {
+  <main class="login-shell">
+    <div class="login-topline"><span class="brand-mark">h</span><span>HackHive <i>/</i> AI Builder Cup JAPAC</span></div>
+    <section class="login-layout">
+      <div class="login-copy">
+        <p class="eyebrow">LEARNING, BUILT AROUND YOU</p>
+        <h1>Make your next<br><em>breakthrough.</em></h1>
+        <p class="login-description">A smarter way to build practical AI skills, one focused step at a time.</p>
+        <div class="login-proof"><span class="proof-icon">✳</span><span>Personalized with Gemini<br><strong>Designed for real-world builders</strong></span></div>
+      </div>
+      <div class="login-panel">
+        <div class="panel-kicker">WELCOME BACK</div>
+        <h2>Sign in to your workspace</h2>
+        <p>Choose a demo role to explore the platform.</p>
+        <button class="oauth-button" type="button" [disabled]="busy || demoMode" (click)="signInWithProvider('google')"><span class="google-mark">G</span> Continue with Google</button>
+        <button class="oauth-button" type="button" [disabled]="busy || demoMode" (click)="signInWithProvider('microsoft')"><span class="microsoft-mark"><i></i><i></i><i></i><i></i></span> Continue with Microsoft</button>
+        <div class="login-divider"><span>DEMO ACCESS</span></div>
+        <div class="role-choices">
+          <button type="button" (click)="signIn('student')"><span class="role-dot student-dot"></span><span><strong>Student</strong><small>Personal learning path</small></span><span class="role-arrow">↗</span></button>
+          <button type="button" (click)="signIn('teacher')"><span class="role-dot teacher-dot"></span><span><strong>Teacher</strong><small>Classroom insights</small></span><span class="role-arrow">↗</span></button>
+          <button type="button" (click)="signIn('admin')"><span class="role-dot admin-dot"></span><span><strong>Administrator</strong><small>Platform overview</small></span><span class="role-arrow">↗</span></button>
+        </div>
+        <p class="login-note">{{ authError || (demoMode ? 'Demo sign-in is local. Configure Firebase to enable OAuth.' : 'Secure sign-in via Firebase Authentication.') }}</p>
+      </div>
+    </section>
+    <div class="login-footer"><span>AI BUILDER CUP JAPAC 2026</span><span>LEARN WITH INTENTION <b>·</b> BUILD WITH IMPACT</span></div>
+  </main>
+} @else {
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#overview" (click)="$event.preventDefault(); activeTab = 'Overview'"><span class="brand-mark">h</span><span>hackhive<small>AI BUILDER CUP</small></span></a>
+      <div class="workspace-label">WORKSPACE</div>
+      <nav class="side-nav" aria-label="Main navigation">
+          <button [class.active]="activeTab === 'Overview'" (click)="activeTab = 'Overview'"><span class="nav-symbol">◫</span>Overview</button>
+        <button [class.active]="activeTab === 'My learning'" (click)="activeTab = 'My learning'"><span class="nav-symbol">▤</span>My learning <span class="nav-count">3</span></button>
+        <button [class.active]="activeTab === 'Assessments'" (click)="activeTab = 'Assessments'"><span class="nav-symbol">◉</span>Assessments</button>
+        <button [class.active]="activeTab === 'Reports'" (click)="openReport()"><span class="nav-symbol">▥</span>Reports</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="help-box"><span class="help-spark">✳</span><strong>Keep your momentum</strong><p>One small session today keeps your learning streak alive.</p><button type="button" (click)="activeTab = 'My learning'">View today's plan <span>↗</span></button></div>
+        <div class="sidebar-user"><div class="avatar">{{ role === 'student' ? 'AM' : role === 'teacher' ? 'JL' : 'RK' }}</div><div><strong>{{ role === 'student' ? 'Ari Morgan' : role === 'teacher' ? 'Jordan Lee' : 'Riley Kim' }}</strong><small>{{ role | titlecase }}</small></div><button class="more-button" aria-label="Account options">···</button></div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="breadcrumbs"><span>Workspace</span><b>/</b><strong>{{ activeTab }}</strong></div>
+        <div class="topbar-actions"><span class="streak"><span>✳</span> 4 day streak</span><button class="icon-button" aria-label="Notifications">♧<i></i></button><div class="top-avatar">{{ role === 'student' ? 'AM' : role === 'teacher' ? 'JL' : 'RK' }}</div></div>
+      </header>
+
+      <div class="page-content">
+        <section class="welcome-row">
+          <div><p class="eyebrow">{{ role === 'student' ? 'MONDAY, 19 OCTOBER 2026' : role === 'teacher' ? 'TEACHING WORKSPACE' : 'PLATFORM WORKSPACE' }}</p><h1>{{ role === 'student' ? 'Good morning, Ari' : role === 'teacher' ? 'Good morning, Jordan' : 'Good morning, Riley' }}<span class="hello-mark">✳</span></h1><p class="welcome-subtitle">{{ role === 'student' ? 'A little progress adds up. You’re right on track.' : role === 'teacher' ? 'Your cohort is making steady progress this week.' : 'Here’s a clear view of learning across your workspace.' }}</p></div>
+          <label class="role-switch"><span>{{ demoMode ? 'DEMO VIEW' : 'YOUR ROLE' }}</span><select [value]="role" [disabled]="!demoMode" (change)="setRole($any($event.target).value)"><option value="student">Student</option><option value="teacher">Teacher</option><option value="admin">Admin</option></select></label>
+        </section>
+
+        @if (role !== 'student') {
+          <section class="role-banner"><span class="banner-glyph">{{ role === 'teacher' ? '↗' : '◎' }}</span><div><strong>{{ role === 'teacher' ? 'Cohort pulse' : 'Workspace snapshot' }}</strong><p>{{ role === 'teacher' ? '24 learners active this week · 78% average course completion' : '8 cohorts · 1,284 learners · 92% platform availability' }}</p></div><button type="button" (click)="openReport()">Open {{ role === 'teacher' ? 'class report' : 'admin report' }} <span>↗</span></button></section>
+        }
+
+        @if (apiError) { <div class="inline-alert" role="alert">{{ apiError }}</div> }
+
+        <section class="metrics-grid" aria-label="Learning statistics">
+          <article class="metric"><div class="metric-top"><span>LEARNING STREAK</span><span class="metric-icon coral">✳</span></div><div class="metric-value">04 <small>days</small></div><div class="metric-foot"><span class="trend-up">↗ 2 days</span> vs last week</div></article>
+          <article class="metric"><div class="metric-top"><span>COURSE PROGRESS</span><span class="metric-icon mint">◌</span></div><div class="metric-value">{{ progressPercent }}<small>%</small></div><div class="metric-foot"><span class="trend-up">↗ 12%</span> this month</div></article>
+          <article class="metric"><div class="metric-top"><span>SKILLS PRACTICED</span><span class="metric-icon blue">⌁</span></div><div class="metric-value">08 <small>/ 12</small></div><div class="metric-foot">Across <strong>3 learning modules</strong></div></article>
+          <article class="metric benchmark-metric"><div class="metric-top"><span>BENCHMARK SCORE</span><span class="metric-icon yellow">◎</span></div><div class="metric-value">{{ benchmarkScore }}<small>/ 100</small></div><div class="metric-foot"><span class="benchmark-label">TOP 28%</span> of your cohort</div></article>
+        </section>
+
+        <section class="analytics-grid" aria-label="Learning analytics">
+          <article class="analytics-card activity-chart-card">
+            <div class="analytics-heading"><div><p class="eyebrow">LEARNING ANALYTICS</p><h2>Weekly activity</h2></div><label class="chart-range"><span>PERIOD</span><select aria-label="Chart period"><option>This week</option><option>This month</option></select></label></div>
+            <div class="chart-summary"><strong>7h 40m</strong><span><b>+18%</b> vs last week</span></div>
+            <div class="activity-chart">
+              <svg viewBox="0 0 720 176" role="img" aria-label="Learning activity rose through the week, peaking on Friday">
+                <g class="chart-gridlines"><line x1="36" y1="18" x2="710" y2="18"/><line x1="36" y1="58" x2="710" y2="58"/><line x1="36" y1="98" x2="710" y2="98"/><line x1="36" y1="138" x2="710" y2="138"/></g>
+                <g class="chart-y-labels"><text x="0" y="22">8h</text><text x="0" y="62">6h</text><text x="0" y="102">4h</text><text x="0" y="142">2h</text></g>
+                <path class="chart-area" d="M48 115 C86 107 100 94 145 101 S209 114 247 79 S311 91 348 72 S412 91 449 55 S512 69 550 47 S615 58 653 29 S690 34 700 24 L700 151 L48 151 Z"/>
+                <path class="chart-line" d="M48 115 C86 107 100 94 145 101 S209 114 247 79 S311 91 348 72 S412 91 449 55 S512 69 550 47 S615 58 653 29 S690 34 700 24"/>
+                <g class="chart-points"><circle cx="48" cy="115" r="4"/><circle cx="145" cy="101" r="4"/><circle cx="247" cy="79" r="4"/><circle cx="348" cy="72" r="4"/><circle cx="449" cy="55" r="4"/><circle cx="550" cy="47" r="4"/><circle cx="653" cy="29" r="4"/></g>
+              </svg>
+              <div class="chart-x-labels"><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span></div>
+            </div>
+          </article>
+          <article class="analytics-card skill-chart-card">
+            <div class="analytics-heading"><div><p class="eyebrow">SKILL DEVELOPMENT</p><h2>Competency map</h2></div><span class="chart-menu" aria-hidden="true">•••</span></div>
+            <div class="skill-chart-legend"><span><i></i>Current level</span><span><i></i>Target</span></div>
+            <div class="competency-chart">
+              <div class="competency-row"><span>AI fundamentals</span><div class="competency-track"><i class="target" style="width:90%"></i><i class="current" style="width:82%"></i></div><b>82%</b></div>
+              <div class="competency-row"><span>Data literacy</span><div class="competency-track"><i class="target" style="width:85%"></i><i class="current" style="width:68%"></i></div><b>68%</b></div>
+              <div class="competency-row"><span>Responsible AI</span><div class="competency-track"><i class="target" style="width:80%"></i><i class="current" style="width:54%"></i></div><b>54%</b></div>
+              <div class="competency-row"><span>Model evaluation</span><div class="competency-track"><i class="target" style="width:72%"></i><i class="current" style="width:41%"></i></div><b>41%</b></div>
+            </div>
+            <button class="chart-action" type="button" (click)="activeTab = 'My learning'">View skill plan <span>→</span></button>
+          </article>
+        </section>
+
+        <section class="content-grid">
+          <div class="primary-column">
+            <div class="section-heading"><div><p class="eyebrow">YOUR NEXT BEST STEP</p><h2>Learning path</h2></div><button class="text-action" type="button" [disabled]="busy" (click)="generatePath()">{{ pathGenerated ? 'Refresh path' : 'Refresh with AI' }} <span>✳</span></button></div>
+            <article class="path-panel">
+              <div class="path-intro"><div class="path-art"><span class="orbit orbit-one"></span><span class="orbit orbit-two"></span><span class="path-star">✳</span><span class="path-art-caption">AI<br>PATH</span></div><div class="path-copy"><div class="path-tag"><span></span> GEMINI PERSONALIZED</div><h3>{{ pathTitle }}</h3><p>{{ pathRationale }}</p><div class="path-meta"><span>◷ {{ lessons.length }} lessons</span><span>·</span><span>{{ pathGenerated ? 'Adaptive plan' : '~45 min' }}</span><span>·</span><span>Updated today</span></div></div></div>
+              <div class="path-progress"><div class="progress-label"><span>YOUR PROGRESS</span><strong>{{ completedLessons }} of {{ lessons.length }} lessons</strong></div><div class="progress-track"><span [style.width.%]="progressPercent"></span></div></div>
+              <div class="lesson-list">
+                @for (lesson of lessons; track lesson.id) {
+                  <div class="lesson-row" [class.lesson-complete]="lesson.complete"><div class="lesson-index">@if (lesson.complete) { <span>✓</span> } @else { {{ lesson.id | number: '2.0' }} }</div><div class="lesson-copy"><strong>{{ lesson.title }}</strong><small>{{ lesson.detail }}</small></div><span class="lesson-duration">◷ {{ lesson.duration }}</span><button class="lesson-button" type="button" [disabled]="lesson.complete || busy" (click)="completeLesson(lesson.id)">{{ lesson.complete ? 'Complete' : 'Start lesson' }} <span>{{ lesson.complete ? '✓' : '→' }}</span></button></div>
+                }
+              </div>
+              <button class="path-footer-action" type="button" (click)="generatePath()"><span>✳</span> Adapt this path to a new goal <b>↗</b></button>
+            </article>
+          </div>
+
+          <aside class="secondary-column">
+            <div class="section-heading compact-heading"><div><p class="eyebrow">A QUICK CHECK-IN</p><h2>Skill snapshot</h2></div><button class="more-button" aria-label="More skill options">···</button></div>
+            <article class="skill-panel"><div class="skill-summary"><div class="skill-ring"><span>68<small>%</small></span></div><div><strong>Growing steadily</strong><p>Your strongest area is<br><b>AI fundamentals</b></p></div></div><div class="skill-bars"><div class="skill-line"><span>AI fundamentals</span><b>82%</b><i><em style="width:82%"></em></i></div><div class="skill-line"><span>Data literacy</span><b>68%</b><i><em style="width:68%"></em></i></div><div class="skill-line"><span>Responsible AI</span><b>54%</b><i><em style="width:54%"></em></i></div></div><button class="skill-link" (click)="openReport()">View skill report <span>→</span></button></article>
+            <div class="section-heading compact-heading activity-heading"><div><p class="eyebrow">KEEP THE RHYTHM</p><h2>This week</h2></div><button class="text-action small-action" (click)="openReport()">Details <span>↗</span></button></div>
+            <article class="week-panel"><div class="week-days"><div><small>MON</small><span class="day-done">✓</span></div><div><small>TUE</small><span class="day-done">✓</span></div><div><small>WED</small><span class="day-done">✓</span></div><div><small>THU</small><span class="day-today">19</span></div><div><small>FRI</small><span class="day-empty">20</span></div><div><small>SAT</small><span class="day-empty">21</span></div><div><small>SUN</small><span class="day-empty">22</span></div></div><div class="week-note"><span class="week-note-icon">✳</span><p><strong>3 of 4 learning days</strong><br>You’re building a great habit.</p></div></article>
+            <div class="insight-strip"><span>✧</span><p><strong>One insight for you</strong><br>Short sessions are working. Your quiz accuracy is up 14%.</p><button aria-label="Dismiss insight">×</button></div>
+          </aside>
+        </section>
+
+        @if (activeTab === 'Assessments') {
+          <section class="assessment-stage">
+            <div class="section-heading"><div><p class="eyebrow">ADAPTIVE PRACTICE</p><h2>Knowledge check</h2></div><span class="assessment-tag">GEMINI · 3 QUESTIONS</span></div>
+            @if (quizQuestions.length === 0) {
+              <div class="assessment-empty"><span class="assessment-spark">✳</span><div><strong>Ready for a quick check-in?</strong><p>Your questions adapt to the skills in your learning path.</p></div><button class="primary-button" type="button" [disabled]="busy" (click)="startQuiz()">Start assessment <span>→</span></button></div>
+            } @else {
+              <div class="quiz-card">
+                @for (question of quizQuestions; track question.id; let questionIndex = $index) {
+                  <fieldset class="quiz-question"><legend><span>{{ (questionIndex + 1) | number: '2.0' }}</span>{{ question.prompt }}</legend><div class="quiz-options">@for (option of question.options; track option; let optionIndex = $index) { <button type="button" [class.answer-selected]="selectedAnswers[questionIndex] === optionIndex" (click)="selectAnswer(questionIndex, optionIndex)"><span class="option-index">{{ ['A', 'B', 'C', 'D'][optionIndex] }}</span>{{ option }}</button> }</div></fieldset>
+                }
+                @if (quizScore === null) { <button class="primary-button quiz-submit" type="button" [disabled]="!allQuizAnswersSelected" (click)="submitQuiz()">Submit answers <span>→</span></button> }
+                @else { <div class="quiz-result"><strong>{{ quizScore }}<small>/ 100</small></strong><p>{{ quizFeedback }}</p></div><button class="text-action" type="button" (click)="startQuiz()">Try another set <span>↗</span></button> }
+              </div>
+            }
+          </section>
+        }
+
+        <footer class="page-footer"><span>HACKHIVE LEARNING STUDIO</span><span>LEARN WITH INTENTION <b>·</b> BUILD WITH IMPACT</span></footer>
+      </div>
+    </main>
+  </div>
+
+  @if (reportOpen) {
+    <div class="modal-backdrop" (click)="reportOpen = false" (keydown.escape)="reportOpen = false">
+      <section class="report-modal" role="dialog" aria-modal="true" aria-labelledby="report-title" (click)="$event.stopPropagation()">
+        <button class="modal-close" aria-label="Close report" (click)="reportOpen = false">×</button>
+        <p class="eyebrow">COHORT BENCHMARK · OCTOBER 2026</p><h2 id="report-title">Your learning, in focus.</h2><p class="report-lede">A snapshot of your progress compared with learners on a similar path.</p>
+        <div class="report-score"><span>{{ benchmarkScore }}</span><small>/ 100</small><b>COHORT VIEW</b></div>
+        <div class="report-breakdown"><div><span>Learning courses</span><strong>{{ reportSnapshot?.courseCount ?? 1 }}</strong></div><div class="report-bar"><i [style.width.%]="progressPercent"></i></div><div><span>Completed lessons</span><strong>{{ reportSnapshot?.completedLessons ?? completedLessons }}</strong></div><div class="report-bar"><i [style.width.%]="progressPercent"></i></div><div><span>Assessment average</span><strong>{{ benchmarkScore }}%</strong></div><div class="report-callout">{{ reportSnapshot ? 'Your benchmark uses your saved Firestore progress and assessment results.' : 'Your pace is ahead of the demo cohort average. Keep taking short, regular sessions.' }}</div></div>
+        <button class="primary-button report-done" (click)="reportOpen = false">Back to learning <span>→</span></button>
+      </section>
+    </div>
+  }
+}
