@@ -916,6 +916,10 @@ export class AppComponent implements OnInit {
     }
   }
 
+  closeReport(): void {
+    this.reportOpen = false;
+  }
+
   async startQuiz(): Promise<void> {
     this.quizScore = null;
     this.quizFeedback = '';

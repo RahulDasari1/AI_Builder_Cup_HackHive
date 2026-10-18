@@ -673,26 +673,80 @@
 
       <nav class="side-nav" aria-label="Main navigation">
         @if (role === 'student') {
-          <button [class.active]="activeTab === 'Overview'" (click)="selectTab('Overview')"><span class="nav-symbol">◫</span>Overview</button>
-          <button [class.active]="activeTab === 'Curated Courses'" (click)="selectTab('Curated Courses')"><span class="nav-symbol">🎓</span>Curated Courses <span class="nav-count">{{ curatedCourses.length }}</span></button>
-          <button [class.active]="activeTab === 'Agentic AI'" (click)="selectTab('Agentic AI')"><span class="nav-symbol">✨</span>Agentic AI Studio</button>
-          <button [class.active]="activeTab === 'My learning'" (click)="selectTab('My learning')"><span class="nav-symbol">▤</span>My learning <span class="nav-count">{{ lessons.length }}</span></button>
-          <button [class.active]="activeTab === 'Assessments'" (click)="selectTab('Assessments')"><span class="nav-symbol">◉</span>Assessments</button>
-          <button [class.active]="activeTab === 'Reports'" (click)="selectTab('Reports')"><span class="nav-symbol">▥</span>Reports</button>
+          <button [class.active]="activeTab === 'Overview'" (click)="selectTab('Overview')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+            Overview
+          </button>
+          <button [class.active]="activeTab === 'Curated Courses'" (click)="selectTab('Curated Courses')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+            Curated Courses <span class="nav-count">{{ curatedCourses.length }}</span>
+          </button>
+          <button [class.active]="activeTab === 'Agentic AI'" (click)="selectTab('Agentic AI')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path></svg>
+            Agentic AI Studio
+          </button>
+          <button [class.active]="activeTab === 'My learning'" (click)="selectTab('My learning')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            My learning <span class="nav-count">{{ lessons.length }}</span>
+          </button>
+          <button [class.active]="activeTab === 'Assessments'" (click)="selectTab('Assessments')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            Assessments
+          </button>
+          <button [class.active]="activeTab === 'Reports'" (click)="selectTab('Reports')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            Reports
+          </button>
         } @else if (role === 'teacher') {
-          <button [class.active]="activeTab === 'Cohort Pulse'" (click)="selectTab('Cohort Pulse')"><span class="nav-symbol">◫</span>Cohort Pulse</button>
-          <button [class.active]="activeTab === 'Curated Courses'" (click)="selectTab('Curated Courses')"><span class="nav-symbol">🎓</span>Curriculum Curation <span class="nav-count">{{ curatedCourses.length }}</span></button>
-          <button [class.active]="activeTab === 'Agentic AI'" (click)="selectTab('Agentic AI')"><span class="nav-symbol">✨</span>Curriculum Architect</button>
-          <button [class.active]="activeTab === 'Curriculum Manager'" (click)="selectTab('Curriculum Manager')"><span class="nav-symbol">▤</span>Curriculum Manager</button>
-          <button [class.active]="activeTab === 'Assessment Review'" (click)="selectTab('Assessment Review')"><span class="nav-symbol">◉</span>Assessment Review</button>
-          <button [class.active]="activeTab === 'Class Reports'" (click)="selectTab('Class Reports')"><span class="nav-symbol">▥</span>Class Reports</button>
+          <button [class.active]="activeTab === 'Cohort Pulse'" (click)="selectTab('Cohort Pulse')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+            Cohort Pulse
+          </button>
+          <button [class.active]="activeTab === 'Curated Courses'" (click)="selectTab('Curated Courses')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+            Curriculum Curation <span class="nav-count">{{ curatedCourses.length }}</span>
+          </button>
+          <button [class.active]="activeTab === 'Agentic AI'" (click)="selectTab('Agentic AI')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path></svg>
+            Curriculum Architect
+          </button>
+          <button [class.active]="activeTab === 'Curriculum Manager'" (click)="selectTab('Curriculum Manager')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            Curriculum Manager
+          </button>
+          <button [class.active]="activeTab === 'Assessment Review'" (click)="selectTab('Assessment Review')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            Assessment Review
+          </button>
+          <button [class.active]="activeTab === 'Class Reports'" (click)="selectTab('Class Reports')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            Class Reports
+          </button>
         } @else {
-          <button [class.active]="activeTab === 'Platform Health'" (click)="selectTab('Platform Health')"><span class="nav-symbol">◫</span>Platform Health</button>
-          <button [class.active]="activeTab === 'Curated Courses'" (click)="selectTab('Curated Courses')"><span class="nav-symbol">🎓</span>Course Curation <span class="nav-count">{{ curatedCourses.length }}</span></button>
-          <button [class.active]="activeTab === 'Agentic AI'" (click)="selectTab('Agentic AI')"><span class="nav-symbol">✨</span>Agentic Telemetry</button>
-          <button [class.active]="activeTab === 'Course Catalog'" (click)="selectTab('Course Catalog')"><span class="nav-symbol">▤</span>Course Catalog</button>
-          <button [class.active]="activeTab === 'User Directory'" (click)="selectTab('User Directory')"><span class="nav-symbol">◉</span>User Directory</button>
-          <button [class.active]="activeTab === 'AI Analytics'" (click)="selectTab('AI Analytics')"><span class="nav-symbol">▥</span>AI Analytics</button>
+          <button [class.active]="activeTab === 'Platform Health'" (click)="selectTab('Platform Health')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+            Platform Health
+          </button>
+          <button [class.active]="activeTab === 'Curated Courses'" (click)="selectTab('Curated Courses')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+            Course Curation <span class="nav-count">{{ curatedCourses.length }}</span>
+          </button>
+          <button [class.active]="activeTab === 'Agentic AI'" (click)="selectTab('Agentic AI')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"></path></svg>
+            Agentic Telemetry
+          </button>
+          <button [class.active]="activeTab === 'Course Catalog'" (click)="selectTab('Course Catalog')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            Course Catalog
+          </button>
+          <button [class.active]="activeTab === 'User Directory'" (click)="selectTab('User Directory')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            User Directory
+          </button>
+          <button [class.active]="activeTab === 'AI Analytics'" (click)="selectTab('AI Analytics')">
+            <svg class="nav-svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            AI Analytics
+          </button>
         }
       </nav>
 
@@ -709,7 +763,13 @@
             <strong>{{ currentUserName }}</strong>
             <small>{{ role | titlecase }} Role</small>
           </div>
-          <button class="more-button" aria-label="Sign out" (click)="signOut()" title="Sign out">⎋</button>
+          <button class="more-button logout-btn" aria-label="Sign out" (click)="signOut()" title="Sign out">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </button>
         </div>
       </div>
     </aside>
@@ -720,7 +780,12 @@
           <span>Workspace</span><b>/</b><span>{{ role | titlecase }}</span><b>/</b><strong>{{ activeTab }}</strong>
         </div>
         <div class="topbar-actions">
-          <span class="streak"><span>✳</span> 4 day streak</span>
+          <span class="streak">
+            <svg class="streak-icon" viewBox="0 0 24 24" width="14" height="14" fill="#f59e0b" stroke="none">
+              <path d="M12 2c-.3 1.8-1.5 3.3-2.6 4.7C8.1 8.2 7 9.8 7 12c0 3.3 2.7 6 6 6s6-2.7 6-6c0-3.5-2.5-6.5-5-8.5-.6-.5-1.5-.9-2-1.5z"/>
+            </svg>
+            4 day streak
+          </span>
           <label class="role-switch top-role-switch">
             <span>SWITCH VIEW</span>
             <select [value]="role" (change)="setRole($any($event.target).value)">
@@ -729,7 +794,13 @@
               <option value="admin">Admin</option>
             </select>
           </label>
-          <button class="icon-button" aria-label="Sign out" (click)="signOut()" title="Sign out">⎋</button>
+          <button class="icon-button logout-btn" aria-label="Sign out" (click)="signOut()" title="Sign out">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </button>
           <div class="top-avatar">{{ currentUserAvatar }}</div>
         </div>
       </header>
@@ -1535,7 +1606,12 @@
   @if (activeLessonModal) {
     <div class="modal-backdrop" (click)="closeLesson()" (keydown.escape)="closeLesson()">
       <div class="lesson-modal" (click)="$event.stopPropagation()">
-        <button class="modal-close" type="button" aria-label="Close" (click)="closeLesson()">×</button>
+        <button class="modal-close" type="button" aria-label="Close" (click)="closeLesson()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
         <div class="lesson-modal-header">
           <span class="badge passed">MODULE {{ activeLessonModal.id }} · {{ activeLessonModal.duration }}</span>
           <h2>{{ activeLessonModal.title }}</h2>
@@ -1585,9 +1661,14 @@
 
   <!-- Report Modal -->
   @if (reportOpen) {
-    <div class="modal-backdrop" (click)="reportOpen = false" (keydown.escape)="reportOpen = false">
+    <div class="modal-backdrop" (click)="closeReport()" (keydown.escape)="closeReport()">
       <section class="report-modal" role="dialog" aria-modal="true" aria-labelledby="report-title" (click)="$event.stopPropagation()">
-        <button class="modal-close" aria-label="Close report" (click)="reportOpen = false">×</button>
+        <button class="modal-close" aria-label="Close report" (click)="closeReport()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
         <p class="eyebrow">COHORT BENCHMARK · OCTOBER 2026</p>
         <h2 id="report-title">Your learning, in focus.</h2>
         <p class="report-lede">A snapshot of your progress compared with learners in {{ cohortStats?.cohortId || 'cohort-2026-japac' }}.</p>
@@ -1602,7 +1683,7 @@
             {{ reportSnapshot ? 'Your benchmark uses your saved Firestore progress and assessment results.' : 'Your pace is ahead of the cohort average. Keep taking short, regular sessions.' }}
           </div>
         </div>
-        <button class="primary-button report-done" (click)="reportOpen = false">Back to learning <span>→</span></button>
+        <button class="primary-button report-done" type="button" (click)="closeReport()">Back to learning <span>→</span></button>
       </section>
     </div>
   }

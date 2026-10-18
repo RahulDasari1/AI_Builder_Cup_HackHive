@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="hh-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a73e8" />
+      <stop offset="50%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#00875a" />
+    </linearGradient>
+    <linearGradient id="glow-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#34d399" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#0b132b" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Hexagonal Core Container -->
+  <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" fill="url(#hh-grad)" filter="url(#shadow)" />
+  
+  <!-- Subtle Internal Border Accent -->
+  <polygon points="32,8 54,20 54,44 32,56 10,44 10,20" fill="none" stroke="url(#glow-grad)" stroke-width="1.5" stroke-opacity="0.6" />
+
+  <!-- HackHive 'h' Glyph -->
+  <path d="M22 17 V47 M22 31 C25 24 38 23 38 31 V47" stroke="#ffffff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- AI Pulse Sparkle -->
+  <circle cx="44" cy="20" r="3.5" fill="#fbbc04" />
+  <circle cx="44" cy="20" r="1.5" fill="#ffffff" />
+</svg>
