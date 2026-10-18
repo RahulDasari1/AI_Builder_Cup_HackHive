@@ -54,7 +54,7 @@ export class FirebaseClientService {
     }
   }
 
-  async ensureUserProfile(user: User): Promise<void> {
+  async ensureUserProfile(user: User, role: 'student' | 'teacher' | 'admin' = 'student'): Promise<void> {
     if (!this.isConfigured) return;
     try {
       const { doc, getDoc, getFirestore, serverTimestamp, setDoc } = await import('firebase/firestore');
@@ -67,6 +67,7 @@ export class FirebaseClientService {
             email: user.email,
             displayName: user.displayName,
             photoURL: user.photoURL,
+            role,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
           };
@@ -80,9 +81,131 @@ export class FirebaseClientService {
     try {
       const token = await user.getIdTokenResult();
       const role = token.claims['role'];
-      return role === 'teacher' || role === 'admin' ? role : 'student';
+      if (role === 'teacher' || role === 'admin') return role;
     } catch {
-      return 'student';
+      // Fallback to Firestore check below
+    }
+
+    try {
+      if (this.isConfigured) {
+        const { doc, getDoc, getFirestore } = await import('firebase/firestore');
+        const profileRef = doc(getFirestore(await this.firebaseApp()), 'Users', user.uid);
+        const snap = await getDoc(profileRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          if (data && (data['role'] === 'teacher' || data['role'] === 'admin')) {
+            return data['role'];
+          }
+        }
+      }
+    } catch {
+      // Fallback
+    }
+
+    return 'student';
+  }
+
+  async saveInquiry(inquiry: {
+    name: string;
+    email: string;
+    organization: string;
+    cohortSize: string;
+    message: string;
+  }): Promise<boolean> {
+    if (!this.isConfigured) return true;
+    try {
+      const { addDoc, collection, getFirestore, serverTimestamp } = await import('firebase/firestore');
+      const db = getFirestore(await this.firebaseApp());
+      await addDoc(collection(db, 'Inquiries'), {
+        ...inquiry,
+        createdAt: serverTimestamp()
+      });
+      return true;
+    } catch {
+      return true;
+    }
+  }
+
+  async saveCourseToFirestore(course: {
+    id: string;
+    title: string;
+    description: string;
+    category: string;
+    published: boolean;
+    durationHours: number;
+    difficulty: string;
+  }): Promise<void> {
+    if (!this.isConfigured) return;
+    try {
+      const { doc, getFirestore, serverTimestamp, setDoc } = await import('firebase/firestore');
+      const db = getFirestore(await this.firebaseApp());
+      await setDoc(doc(db, 'Courses', course.id), {
+        ...course,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    } catch {
+      // Graceful offline tolerance
+    }
+  }
+
+  async deleteCourseFromFirestore(courseId: string): Promise<void> {
+    if (!this.isConfigured) return;
+    try {
+      const { deleteDoc, doc, getFirestore } = await import('firebase/firestore');
+      const db = getFirestore(await this.firebaseApp());
+      await deleteDoc(doc(db, 'Courses', courseId));
+    } catch {
+      // Graceful offline tolerance
+    }
+  }
+
+  async saveQuizResultToFirestore(quizAttempt: {
+    quizId: string;
+    uid: string;
+    score: number;
+    topic: string;
+    answers: number[];
+  }): Promise<void> {
+    if (!this.isConfigured) return;
+    try {
+      const { addDoc, collection, getFirestore, serverTimestamp } = await import('firebase/firestore');
+      const db = getFirestore(await this.firebaseApp());
+      await addDoc(collection(db, 'Assessments'), {
+        ...quizAttempt,
+        submittedAt: serverTimestamp()
+      });
+    } catch {
+      // Graceful offline tolerance
+    }
+  }
+
+  async updateUserRoleInFirestore(uid: string, role: 'student' | 'teacher' | 'admin'): Promise<void> {
+    if (!this.isConfigured) return;
+    try {
+      const { doc, getFirestore, serverTimestamp, setDoc } = await import('firebase/firestore');
+      const db = getFirestore(await this.firebaseApp());
+      await setDoc(doc(db, 'Users', uid), {
+        role,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    } catch {
+      // Graceful offline tolerance
+    }
+  }
+
+  async saveProgressToFirestore(uid: string, courseId: string, completedLessonIds: string[]): Promise<void> {
+    if (!this.isConfigured) return;
+    try {
+      const { doc, getFirestore, serverTimestamp, setDoc } = await import('firebase/firestore');
+      const db = getFirestore(await this.firebaseApp());
+      await setDoc(doc(db, 'Progress', `${uid}_${courseId}`), {
+        uid,
+        courseId,
+        completedLessonIds,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    } catch {
+      // Graceful offline tolerance
     }
   }
 

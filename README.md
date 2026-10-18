@@ -86,7 +86,7 @@ cd frontend
 npm run test:ci
 ```
 **Results**:
-- `10/10 tests passed` (initialization, role switching, OAuth fallback, Gemini learning path, quiz submission, course CRUD, user role management, sign out).
+- `12/12 tests passed` (initialization, role switching, Google Sign-In & OAuth modal, Gemini learning path, interactive lesson modal, quiz submission, course catalog CRUD, user role management, contact form submission with Firestore sync, sign out).
 
 ### 2. Backend Test Suite (.NET 10 & xUnit)
 ```powershell

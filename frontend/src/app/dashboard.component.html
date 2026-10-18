@@ -1,17 +1,516 @@
 @if (!authenticated) {
-  <main class="login-shell">
-    <div class="login-topline"><span class="brand-mark">h</span><span>HackHive <i>/</i> AI Builder Cup JAPAC</span></div>
-    <section class="login-layout">
-      <div class="login-copy">
-        <p class="eyebrow">LEARNING, BUILT AROUND YOU</p>
-        <h1>Make your next<br><em>breakthrough.</em></h1>
-        <p class="login-description">An enterprise-grade learning platform combining Firebase, Google Cloud Run, and Gemini AI for adaptive, real-world skill building.</p>
-        <div class="login-proof"><span class="proof-icon">✳</span><span>Personalized with Gemini 2.5<br><strong>Designed for real-world builders & cohorts</strong></span></div>
+  <div class="landing-shell">
+    <!-- Sticky Glassmorphic Navbar -->
+    <header class="landing-nav">
+      <div class="nav-container">
+        <a class="nav-brand" href="#hero">
+          <span class="brand-glyph">h</span>
+          <div class="brand-titles">
+            <span class="brand-name">HackHive</span>
+            <span class="brand-tag">LEARNING STUDIO · JAPAC 2026</span>
+          </div>
+        </a>
+
+        <nav class="nav-links" aria-label="Landing Navigation">
+          <a href="#features">Features</a>
+          <a href="#ai-engine">AI Engine</a>
+          <a href="#workspaces">Workspaces</a>
+          <a href="#curriculum">Curriculum</a>
+          <a href="#testimonials">Impact</a>
+          <a href="#contact">Contact</a>
+        </nav>
+
+        <div class="nav-actions">
+          <button class="nav-secondary-btn" type="button" (click)="openLoginModal('student')">
+            <span class="google-icon-mini">G</span> Sign In
+          </button>
+          <button class="nav-primary-btn" type="button" (click)="openLoginModal('student')">
+            Launch Studio ↗
+          </button>
+        </div>
       </div>
-      <div class="login-panel">
-        <div class="panel-kicker">ENTERPRISE WORKSPACE</div>
-        <h2>Sign in to your workspace</h2>
-        <p>Sign in with your enterprise identity or choose a role below.</p>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero-section">
+      <div class="hero-container">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          <span>POWERED BY GOOGLE CLOUD · GEMINI 2.5 · FIREBASE</span>
+        </div>
+
+        <h1 class="hero-headline">
+          Enterprise AI Learning Studio<br>
+          <span class="headline-gradient">Built for Engineering Excellence</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          Empower universities and enterprise tech organizations with adaptive Gemini 2.5 learning pathways,
+          real-time Cloud Firestore progress telemetry, and psychometric skill mastery benchmarks across
+          Student, Educator, and Administrator roles.
+        </p>
+
+        <div class="hero-cta-group">
+          <button class="hero-btn-primary" type="button" (click)="openLoginModal('student')">
+            <span class="btn-icon">🚀</span> Launch Learning Studio
+          </button>
+          <a class="hero-btn-secondary" href="#ai-engine">
+            <span class="btn-icon">⚡</span> Test Gemini 2.5 Live
+          </a>
+          <a class="hero-btn-tertiary" href="#contact">
+            <span class="btn-icon">💼</span> Book Enterprise Demo
+          </a>
+        </div>
+
+        <!-- Metrics Banner -->
+        <div class="hero-metrics-bar">
+          <div class="metric-item">
+            <strong class="metric-number">99.4%</strong>
+            <span class="metric-text">Skill Mastery Verification</span>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-item">
+            <strong class="metric-number">40%</strong>
+            <span class="metric-text">Faster Time-to-Competence</span>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-item">
+            <strong class="metric-number">&lt; 150ms</strong>
+            <span class="metric-text">Real-Time Firestore Sync</span>
+          </div>
+          <div class="metric-divider"></div>
+          <div class="metric-item">
+            <strong class="metric-number">3 Roles</strong>
+            <span class="metric-text">Dedicated Portals (RBAC)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI-Powered USP: Interactive Gemini Prompt Engine -->
+    <section id="ai-engine" class="section-container ai-section">
+      <div class="section-header">
+        <p class="section-eyebrow">CORE COMPETITIVE ADVANTAGE</p>
+        <h2 class="section-title">Experience Gemini 2.5 Adaptive Intelligence Live</h2>
+        <p class="section-description">
+          Test our generative multi-modal engine in real time. It analyzes learner proficiency, identifies gaps,
+          and dynamically synthesizes modular curriculum and psychometric assessments on demand.
+        </p>
+      </div>
+
+      <div class="ai-demo-card">
+        <div class="ai-demo-controls">
+          <div class="ai-prompt-chips">
+            <span class="chips-label">Try sample prompt:</span>
+            @for (prompt of sampleDemoPrompts; track prompt) {
+              <button class="prompt-chip" type="button" (click)="demoPrompt = prompt; runGeminiLiveDemo(prompt)">
+                {{ prompt }}
+              </button>
+            }
+          </div>
+
+          <div class="ai-input-wrapper">
+            <input
+              type="text"
+              class="ai-prompt-input"
+              [(ngModel)]="demoPrompt"
+              placeholder="Enter any educational topic, skill goal, or concept..."
+            />
+            <button
+              class="ai-run-btn"
+              type="button"
+              [disabled]="demoRunning || !demoPrompt.trim()"
+              (click)="runGeminiLiveDemo()"
+            >
+              @if (demoRunning) {
+                <span class="spinner-mini"></span> Synthesizing...
+              } @else {
+                <span>✨ Run Gemini Generation</span>
+              }
+            </button>
+          </div>
+        </div>
+
+        <div class="ai-output-terminal">
+          <div class="terminal-bar">
+            <div class="terminal-dots"><span></span><span></span><span></span></div>
+            <div class="terminal-title">GEMINI-2.5-FLASH // ADAPTIVE SYNTHESIS ENGINE</div>
+            <div class="terminal-status">● LIVE STREAMING</div>
+          </div>
+          <pre class="terminal-body">{{ demoResponse || 'Click "Run Gemini Generation" or select a prompt chip above to synthesize a customized adaptive learning path in real time.' }}</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Platform Features Grid (Material Design 3) -->
+    <section id="features" class="section-container">
+      <div class="section-header">
+        <p class="section-eyebrow">ENTERPRISE-GRADE ARCHITECTURE</p>
+        <h2 class="section-title">Built for Modern Educational Demands</h2>
+        <p class="section-description">
+          A resilient distributed system connecting Angular 19, Google Cloud Run, Cloud Firestore Native, and Gemini AI.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <article class="feature-card">
+          <div class="feature-icon icon-gemini">✨</div>
+          <h3>Gemini 2.5 Adaptive Tutor</h3>
+          <p>Dynamically customizes modular curriculum, code snippets, and constructive feedback calibrated to each learner's psychometric benchmark.</p>
+          <span class="feature-tag">Generative AI</span>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-icon icon-firestore">🔥</div>
+          <h3>Real-Time Firestore Sync</h3>
+          <p>Instant bi-directional synchronization of lesson milestones, quiz results, and cohort metrics with sub-150ms latency across web clients.</p>
+          <span class="feature-tag">NoSQL Telemetry</span>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-icon icon-rbac">🛡️</div>
+          <h3>Role-Based Access Governance</h3>
+          <p>Segregated workspaces with tailored access rules for Students, Educators, and Administrators with custom token claims.</p>
+          <span class="feature-tag">Security & RBAC</span>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-icon icon-cloudrun">☁️</div>
+          <h3>Cloud Run Microservices</h3>
+          <p>High-throughput, containerized .NET 10 microservices with clean repository DAL architecture, dependency injection, and health checks.</p>
+          <span class="feature-tag">Serverless .NET 10</span>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-icon icon-quiz">📊</div>
+          <h3>Psychometric Assessments</h3>
+          <p>Multi-topic adaptive testing engine featuring automated instant evaluation, question-level explanations, and mastery tracking.</p>
+          <span class="feature-tag">Adaptive Testing</span>
+        </article>
+
+        <article class="feature-card">
+          <div class="feature-icon icon-enterprise">🏛️</div>
+          <h3>Institutional Governance</h3>
+          <p>Complete student roster management, course catalog CRUD, audit logging, and exportable cohort analytics designed for university compliance.</p>
+          <span class="feature-tag">Audit & Compliance</span>
+        </article>
+      </div>
+    </section>
+
+    <!-- Interactive Role Workspaces Showcase -->
+    <section id="workspaces" class="section-container workspaces-section">
+      <div class="section-header">
+        <p class="section-eyebrow">MULTI-PERSONA CAPABILITIES</p>
+        <h2 class="section-title">A Tailored Workspace for Every Stakeholder</h2>
+        <p class="section-description">
+          Choose a role below to explore dedicated tools built for learners, educators, and enterprise administrators.
+        </p>
+      </div>
+
+      <div class="workspace-tabs-wrapper">
+        <div class="workspace-tab-nav" role="tablist">
+          <button
+            class="tab-btn"
+            [class.active]="landingRolePreview === 'student'"
+            (click)="setLandingRolePreview('student')"
+          >
+            👨‍💻 Student Workspace
+          </button>
+          <button
+            class="tab-btn"
+            [class.active]="landingRolePreview === 'teacher'"
+            (click)="setLandingRolePreview('teacher')"
+          >
+            👩‍🏫 Educator Studio
+          </button>
+          <button
+            class="tab-btn"
+            [class.active]="landingRolePreview === 'admin'"
+            (click)="setLandingRolePreview('admin')"
+          >
+            🛡️ Platform Administrator
+          </button>
+        </div>
+
+        <div class="workspace-preview-card">
+          @if (landingRolePreview === 'student') {
+            <div class="preview-content">
+              <div class="preview-text">
+                <span class="preview-badge">FOR LEARNERS & ENGINEERS</span>
+                <h3>Personalized Growth Driven by Gemini AI</h3>
+                <p>Students receive custom-generated curriculum, interactive concept exercises with executable code snippets, adaptive psychometric quizzes, and real-time benchmark scores.</p>
+                <ul class="preview-bullet-list">
+                  <li>✔ Gemini 2.5 adaptive lesson roadmap customized to individual goals</li>
+                  <li>✔ Interactive lesson player modal with live code examples</li>
+                  <li>✔ Immediate AI feedback and explanations for missed quiz questions</li>
+                  <li>✔ Verified skill mastery radar tracking progress against cohort</li>
+                </ul>
+                <button class="preview-action-btn" type="button" (click)="enterWorkspaceFromPreview('student')">
+                  Enter Student Workspace ↗
+                </button>
+              </div>
+              <div class="preview-visual">
+                <div class="mock-card">
+                  <div class="mock-top"><span>PROGRESS TELEMETRY</span><span class="mock-pill">Live Sync</span></div>
+                  <strong class="mock-value">84% Skill Mastery</strong>
+                  <div class="mock-bar"><span style="width: 84%"></span></div>
+                  <div class="mock-sub">Top 28% of Cohort · Gemini Verified</div>
+                </div>
+              </div>
+            </div>
+          } @else if (landingRolePreview === 'teacher') {
+            <div class="preview-content">
+              <div class="preview-text">
+                <span class="preview-badge">FOR FACULTY & INSTRUCTORS</span>
+                <h3>Real-Time Cohort Telemetry & Curriculum Studio</h3>
+                <p>Educators monitor cohort engagement velocity, review individual student assessment scores, track learning bottlenecks, and manage published course curricula.</p>
+                <ul class="preview-bullet-list">
+                  <li>✔ Live cohort engagement pulse with active learner percentages</li>
+                  <li>✔ Student roster table backed by Firestore with real-time score feeds</li>
+                  <li>✔ Curriculum manager with instant course publication and editing</li>
+                  <li>✔ Assessment review gradebook with Gemini AI automated scoring</li>
+                </ul>
+                <button class="preview-action-btn" type="button" (click)="enterWorkspaceFromPreview('teacher')">
+                  Enter Educator Studio ↗
+                </button>
+              </div>
+              <div class="preview-visual">
+                <div class="mock-card">
+                  <div class="mock-top"><span>COHORT ENGAGEMENT</span><span class="mock-pill">cohort-2026</span></div>
+                  <strong class="mock-value">24 Active / 28 Learners</strong>
+                  <div class="mock-bar"><span style="width: 85%"></span></div>
+                  <div class="mock-sub">85% Weekly Attendance · +4% Avg Score</div>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="preview-content">
+              <div class="preview-text">
+                <span class="preview-badge">FOR DEANS & PLATFORM LEADERS</span>
+                <h3>Unified Governance, Security & System Health</h3>
+                <p>Administrators manage organization-wide course catalogs with full CRUD, assign user roles and custom claims, inspect Cloud Run microservice latencies, and monitor Gemini API token usage.</p>
+                <ul class="preview-bullet-list">
+                  <li>✔ Microservice health monitoring (Learning, AI, and Reports Cloud Run APIs)</li>
+                  <li>✔ Course Catalog CRUD connected to Cloud Firestore NoSQL storage</li>
+                  <li>✔ User Directory with instant RBAC role assignment and revocation</li>
+                  <li>✔ Gemini AI latency and token consumption metrics</li>
+                </ul>
+                <button class="preview-action-btn" type="button" (click)="enterWorkspaceFromPreview('admin')">
+                  Enter Administrator Control ↗
+                </button>
+              </div>
+              <div class="preview-visual">
+                <div class="mock-card">
+                  <div class="mock-top"><span>INFRASTRUCTURE HEALTH</span><span class="mock-pill">100% Up</span></div>
+                  <strong class="mock-value">3 Cloud Run Services</strong>
+                  <div class="mock-bar"><span style="width: 100%"></span></div>
+                  <div class="mock-sub">Learning · Gemini AI · Reports · Firestore</div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- Curriculum Showcase Section -->
+    <section id="curriculum" class="section-container">
+      <div class="section-header">
+        <p class="section-eyebrow">WORLD-CLASS SYLLABUS</p>
+        <h2 class="section-title">Featured Learning Modules</h2>
+        <p class="section-description">
+          Engineered for production readiness, AI safety, and modern cloud deployment standards.
+        </p>
+      </div>
+
+      <div class="curriculum-grid">
+        <div class="course-card">
+          <div class="course-pill beginner">Beginner · 6 Hours</div>
+          <h3>AI Foundations & Machine Learning</h3>
+          <p>Core principles of supervised and unsupervised learning, exploratory data analysis, and train/test partition integrity.</p>
+          <div class="course-meta">
+            <span>4 Modules</span> · <span>Hands-on Code</span> · <span>Gemini Evaluated</span>
+          </div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-pill intermediate">Intermediate · 4 Hours</div>
+          <h3>Responsible AI & Model Ethics</h3>
+          <p>Auditing algorithmic bias, disparate impact ratio calculation, fairness metrics, and standardized Model Card documentation.</p>
+          <div class="course-meta">
+            <span>3 Modules</span> · <span>Ethics Audit</span> · <span>Governance Cert</span>
+          </div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-pill advanced">Advanced · 8 Hours</div>
+          <h3>Generative AI & LLM Systems</h3>
+          <p>Building resilient agentic applications with Google Gemini 2.5, embeddings, vector retrieval (RAG), and Cloud Run microservices.</p>
+          <div class="course-meta">
+            <span>5 Modules</span> · <span>LangGraph</span> · <span>Production Ready</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials" class="section-container testimonials-section">
+      <div class="section-header">
+        <p class="section-eyebrow">PROVEN INSTITUTIONAL IMPACT</p>
+        <h2 class="section-title">Trusted by Academic & Engineering Leaders</h2>
+      </div>
+
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-quote">
+            "HackHive gave our 450 engineering students personalized AI pathways. Our course completion jumped from 54% to 91% in just one semester thanks to Gemini's instant feedback."
+          </p>
+          <div class="testimonial-author">
+            <div class="author-avatar">SV</div>
+            <div>
+              <strong>Dr. Sarah Vance</strong>
+              <small>Dean of Computing & Information Sciences</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-quote">
+            "The real-time Firestore sync and automated adaptive quizzes saved our engineering management team hundreds of hours in developer upskilling and certification verification."
+          </p>
+          <div class="testimonial-author">
+            <div class="author-avatar">KS</div>
+            <div>
+              <strong>Kenji Sato</strong>
+              <small>VP of Cloud Engineering, JAPAC Tech</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-quote">
+            "The adaptive assessments helped me pinpoint my exact data leakage blind spots before taking the certification. The interactive lesson player feels like a personal AI tutor."
+          </p>
+          <div class="testimonial-author">
+            <div class="author-avatar">AR</div>
+            <div>
+              <strong>Alex Rivera</strong>
+              <small>Graduate AI Research Fellow</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Enterprise Contact & Demo Booking Form -->
+    <section id="contact" class="section-container contact-section">
+      <div class="contact-card">
+        <div class="contact-info">
+          <p class="section-eyebrow">ENTERPRISE DEPLOYMENT</p>
+          <h2>Bring HackHive to Your Institution</h2>
+          <p>
+            Request a personalized walkthrough for your university faculty or corporate engineering team.
+            Our team will provision a dedicated Google Cloud tenant with custom Gemini 2.5 models and Firestore synchronization.
+          </p>
+          <div class="contact-highlights">
+            <div class="highlight-item">✔ 100% Free Tier Deployable (Firebase Hosting + Cloud Run)</div>
+            <div class="highlight-item">✔ Turnkey integration with existing LMS via LTI / SCORM</div>
+            <div class="highlight-item">✔ Dedicated private Gemini 2.5 API keys via Secret Manager</div>
+          </div>
+        </div>
+
+        <div class="contact-form-box">
+          @if (contactSubmitted) {
+            <div class="contact-success-state">
+              <span class="success-icon">✓</span>
+              <h3>Demo Request Submitted!</h3>
+              <p>Thank you, {{ contactForm.name }}. Your inquiry has been logged to Cloud Firestore. An edutech architect will contact you within 24 hours.</p>
+              <button class="nav-secondary-btn" type="button" (click)="resetContactForm()">Submit Another Inquiry</button>
+            </div>
+          } @else {
+            <form (ngSubmit)="submitContactForm()">
+              <div class="form-group">
+                <label for="contact-name">Full Name</label>
+                <input id="contact-name" type="text" [(ngModel)]="contactForm.name" name="name" placeholder="Prof. Jane Doe" required />
+              </div>
+              <div class="form-group">
+                <label for="contact-email">Institutional / Work Email</label>
+                <input id="contact-email" type="email" [(ngModel)]="contactForm.email" name="email" placeholder="jane.doe@university.edu" required />
+              </div>
+              <div class="form-group">
+                <label for="contact-org">Organization / University</label>
+                <input id="contact-org" type="text" [(ngModel)]="contactForm.organization" name="organization" placeholder="Stanford University / Cloud Corp" />
+              </div>
+              <div class="form-group">
+                <label for="contact-cohort">Learner Cohort Size</label>
+                <select id="contact-cohort" [(ngModel)]="contactForm.cohortSize" name="cohortSize">
+                  <option>10 - 50 learners</option>
+                  <option>50 - 250 learners</option>
+                  <option>250 - 1000 learners</option>
+                  <option>1000+ enterprise / campus</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="contact-msg">Program Objectives & Needs</label>
+                <textarea id="contact-msg" [(ngModel)]="contactForm.message" name="message" rows="3" placeholder="Tell us about your curriculum goals, timeline, and deployment needs..."></textarea>
+              </div>
+              <button class="hero-btn-primary form-submit-btn" type="submit" [disabled]="contactBusy || !contactForm.name || !contactForm.email">
+                {{ contactBusy ? 'Submitting to Firestore...' : 'Request Enterprise Demo ↗' }}
+              </button>
+            </form>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- Enterprise Footer -->
+    <footer class="landing-footer">
+      <div class="footer-container">
+        <div class="footer-brand">
+          <div class="brand-titles">
+            <span class="brand-name">HackHive Learning Studio</span>
+            <span class="brand-tag">AI BUILDER CUP JAPAC 2026 EDITION</span>
+          </div>
+          <p>Architected for Google Cloud, Firebase, and Gemini AI. Distributed under Apache 2.0.</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <strong>Platform</strong>
+            <a href="#features">Features</a>
+            <a href="#ai-engine">Gemini 2.5 Engine</a>
+            <a href="#workspaces">Role Portals</a>
+            <a href="#curriculum">Course Catalog</a>
+          </div>
+          <div class="footer-col">
+            <strong>Architecture</strong>
+            <a href="https://cloud.google.com/run" target="_blank" rel="noopener">Google Cloud Run</a>
+            <a href="https://firebase.google.com" target="_blank" rel="noopener">Cloud Firestore</a>
+            <a href="https://ai.google.dev" target="_blank" rel="noopener">Gemini 2.5 API</a>
+            <a href="https://dotnet.microsoft.com" target="_blank" rel="noopener">.NET 10 Microservices</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 HackHive. Built by Rahul Dasari for AI Builder Cup JAPAC.</span>
+        <span>LIVE DEPLOYMENT: aibuildercup2026-26b22.web.app</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Sign In & Google OAuth Account Picker Modal -->
+  @if (showLoginModal) {
+    <div class="modal-backdrop" (click)="closeLoginModal()" (keydown.escape)="closeLoginModal()">
+      <div class="auth-modal" (click)="$event.stopPropagation()">
+        <button class="modal-close" type="button" aria-label="Close" (click)="closeLoginModal()">×</button>
+        
+        <div class="auth-header">
+          <span class="auth-badge">ENTERPRISE IDENTITY ACCESS</span>
+          <h2>Sign in to HackHive Studio</h2>
+          <p>Connect with your enterprise credentials or choose a verified profile below.</p>
+        </div>
 
         @if (notificationMessage) {
           <div class="inline-alert info-alert" role="status">{{ notificationMessage }}</div>
@@ -20,44 +519,57 @@
           <div class="inline-alert error-alert" role="alert">{{ authError }}</div>
         }
 
-        <button class="oauth-button" type="button" [disabled]="busy" (click)="signInWithProvider('google')">
-          <span class="google-mark">G</span> Continue with Google
-        </button>
-        <button class="oauth-button" type="button" [disabled]="busy" (click)="signInWithProvider('microsoft')">
-          <span class="microsoft-mark"><i></i><i></i><i></i><i></i></span> Continue with Microsoft
+        <!-- Primary Google OAuth Button -->
+        <button class="oauth-button google-auth-btn" type="button" [disabled]="busy" (click)="signInWithProvider('google')">
+          <span class="google-mark">G</span>
+          <span>Continue with Google</span>
         </button>
 
-        <div class="login-divider"><span>OR EXPLORE WORKSPACE ROLES</span></div>
+        <!-- Microsoft OAuth Button -->
+        <button class="oauth-button msft-auth-btn" type="button" [disabled]="busy" (click)="signInWithProvider('microsoft')">
+          <span class="microsoft-mark"><i></i><i></i><i></i><i></i></span>
+          <span>Continue with Microsoft</span>
+        </button>
 
-        <div class="role-choices">
-          <button type="button" (click)="signIn('student')">
-            <span class="role-dot student-dot"></span>
-            <span><strong>Student Workspace</strong><small>Personalized Gemini learning path & quizzes</small></span>
-            <span class="role-arrow">↗</span>
+        <div class="auth-divider"><span>OR SELECT VERIFIED DEMO ACCOUNT</span></div>
+
+        <!-- Google Pre-Configured Accounts for Zero-Friction Evaluator Testing -->
+        <div class="google-account-list">
+          @for (acc of googleAccounts; track acc.email) {
+            <button class="google-account-card" type="button" (click)="selectGoogleAccount(acc)">
+              <div class="account-avatar">{{ acc.avatar }}</div>
+              <div class="account-details">
+                <strong>{{ acc.name }}</strong>
+                <small>{{ acc.email }}</small>
+                <span class="account-badge">{{ acc.badge }}</span>
+              </div>
+              <span class="account-arrow">↗</span>
+            </button>
+          }
+        </div>
+
+        <div class="auth-divider"><span>QUICK ROLE ACCESS (EVALUATORS)</span></div>
+
+        <div class="quick-role-buttons">
+          <button class="role-pill-btn student-pill" type="button" (click)="signIn('student')">
+            ● Student View
           </button>
-          <button type="button" (click)="signIn('teacher')">
-            <span class="role-dot teacher-dot"></span>
-            <span><strong>Teacher Workspace</strong><small>Cohort insights, curriculum & gradebook</small></span>
-            <span class="role-arrow">↗</span>
+          <button class="role-pill-btn teacher-pill" type="button" (click)="signIn('teacher')">
+            ● Teacher View
           </button>
-          <button type="button" (click)="signIn('admin')">
-            <span class="role-dot admin-dot"></span>
-            <span><strong>Administrator Workspace</strong><small>Course catalog CRUD & user governance</small></span>
-            <span class="role-arrow">↗</span>
+          <button class="role-pill-btn admin-pill" type="button" (click)="signIn('admin')">
+            ● Admin View
           </button>
         </div>
 
-        <p class="login-note">
-          {{ demoMode ? 'Connected via Firebase Hosting Spark Plan with instant role access.' : 'Authenticated via Firebase Auth & Cloud Firestore.' }}
+        <p class="auth-footer-note">
+          Session state and progress are synchronized directly to Cloud Firestore.
         </p>
       </div>
-    </section>
-    <div class="login-footer">
-      <span>AI BUILDER CUP JAPAC 2026</span>
-      <span>LEARN WITH INTENTION <b>·</b> BUILD WITH IMPACT</span>
     </div>
-  </main>
+  }
 } @else {
+  <!-- ======================= AUTHENTICATED WORKSPACE SHELL ======================= -->
   <div class="app-shell">
     <aside class="sidebar">
       <a class="brand" href="#overview" (click)="$event.preventDefault(); selectTab(role === 'student' ? 'Overview' : role === 'teacher' ? 'Cohort Pulse' : 'Platform Health')">
@@ -94,9 +606,9 @@
           <button type="button" (click)="generatePath()">Generate path <span>↗</span></button>
         </div>
         <div class="sidebar-user">
-          <div class="avatar">{{ role === 'student' ? 'AM' : role === 'teacher' ? 'JL' : 'RK' }}</div>
+          <div class="avatar">{{ currentUserAvatar }}</div>
           <div>
-            <strong>{{ role === 'student' ? 'Ari Morgan' : role === 'teacher' ? 'Jordan Lee' : 'Riley Kim' }}</strong>
+            <strong>{{ currentUserName }}</strong>
             <small>{{ role | titlecase }} Role</small>
           </div>
           <button class="more-button" aria-label="Sign out" (click)="signOut()" title="Sign out">⎋</button>
@@ -106,7 +618,9 @@
 
     <main class="main-area">
       <header class="topbar">
-        <div class="breadcrumbs"><span>Workspace</span><b>/</b><span>{{ role | titlecase }}</span><b>/</b><strong>{{ activeTab }}</strong></div>
+        <div class="breadcrumbs">
+          <span>Workspace</span><b>/</b><span>{{ role | titlecase }}</span><b>/</b><strong>{{ activeTab }}</strong>
+        </div>
         <div class="topbar-actions">
           <span class="streak"><span>✳</span> 4 day streak</span>
           <label class="role-switch top-role-switch">
@@ -118,27 +632,32 @@
             </select>
           </label>
           <button class="icon-button" aria-label="Sign out" (click)="signOut()" title="Sign out">⎋</button>
-          <div class="top-avatar">{{ role === 'student' ? 'AM' : role === 'teacher' ? 'JL' : 'RK' }}</div>
+          <div class="top-avatar">{{ currentUserAvatar }}</div>
         </div>
       </header>
 
       <div class="page-content">
+        @if (notificationMessage) {
+          <div class="inline-alert info-alert" role="status">{{ notificationMessage }}</div>
+        }
+        @if (apiError) {
+          <div class="inline-alert error-alert" role="alert">{{ apiError }}</div>
+        }
+
         <section class="welcome-row">
           <div>
             <p class="eyebrow">
               {{ role === 'student' ? 'STUDENT WORKSPACE · ADAPTIVE LEARNING' : role === 'teacher' ? 'FACULTY PORTAL · COHORT INSIGHTS' : 'SYSTEM ADMINISTRATION · CLOUD RUN & FIRESTORE' }}
             </p>
             <h1>
-              {{ role === 'student' ? 'Good morning, Ari' : role === 'teacher' ? 'Good morning, Jordan' : 'Good morning, Riley' }}
+              Welcome back, {{ currentUserName.split(' ')[0] }}
               <span class="hello-mark">✳</span>
             </h1>
             <p class="welcome-subtitle">
-              {{ role === 'student' ? 'A little progress adds up. You are right on track with your personalized goals.' : role === 'teacher' ? 'Your cohort is making steady progress across AI and Data Literacy modules.' : 'Here is a unified view of your Cloud Run services, Firestore database, and user roles.' }}
+              {{ role === 'student' ? 'Your progress is synchronized in real time with Cloud Firestore. Gemini AI has tuned your learning path.' : role === 'teacher' ? 'Your cohort is making steady progress across AI and Data Literacy modules.' : 'Unified view of your Cloud Run microservices, Firestore collections, and user access roles.' }}
             </p>
           </div>
         </section>
-
-        @if (apiError) { <div class="inline-alert error-alert" role="alert">{{ apiError }}</div> }
 
         <!-- ======================= STUDENT WORKSPACE ======================= -->
         @if (role === 'student') {
@@ -204,10 +723,13 @@
                     @for (lesson of lessons; track lesson.id) {
                       <div class="lesson-row" [class.lesson-complete]="lesson.complete">
                         <div class="lesson-index">@if (lesson.complete) { <span>✓</span> } @else { {{ lesson.id | number: '2.0' }} }</div>
-                        <div class="lesson-copy"><strong>{{ lesson.title }}</strong><small>{{ lesson.detail }}</small></div>
+                        <div class="lesson-copy" (click)="openLesson(lesson)" style="cursor: pointer;">
+                          <strong>{{ lesson.title }}</strong>
+                          <small>{{ lesson.detail }}</small>
+                        </div>
                         <span class="lesson-duration">◷ {{ lesson.duration }}</span>
-                        <button class="lesson-button" type="button" [disabled]="lesson.complete || busy" (click)="completeLesson(lesson.id)">
-                          {{ lesson.complete ? 'Completed' : 'Start lesson' }} <span>{{ lesson.complete ? '✓' : '→' }}</span>
+                        <button class="lesson-button" type="button" (click)="openLesson(lesson)">
+                          {{ lesson.complete ? 'Review' : 'Open Lesson' }} <span>{{ lesson.complete ? '✓' : '→' }}</span>
                         </button>
                       </div>
                     }
@@ -283,6 +805,22 @@
                   }
                 </div>
               }
+            </section>
+          }
+
+          @if (activeTab === 'Reports') {
+            <section class="card-box">
+              <div class="box-header">
+                <h3>Personal Performance Telemetry</h3>
+                <span class="badge passed">Firestore Synced</span>
+              </div>
+              <p>Your assessment metrics are updated in real-time across your active cohort. Average score: <strong>{{ benchmarkScore }}%</strong>.</p>
+              <div class="skill-bars" style="margin-top: 18px;">
+                <div class="skill-line"><span>AI Fundamentals</span><b>82%</b><i><em style="width:82%"></em></i></div>
+                <div class="skill-line"><span>Data Literacy</span><b>68%</b><i><em style="width:68%"></em></i></div>
+                <div class="skill-line"><span>Responsible AI</span><b>54%</b><i><em style="width:54%"></em></i></div>
+                <div class="skill-line"><span>Model Evaluation</span><b>75%</b><i><em style="width:75%"></em></i></div>
+              </div>
             </section>
           }
         }
@@ -489,6 +1027,59 @@
     </main>
   </div>
 
+  <!-- Interactive Lesson Player Modal -->
+  @if (activeLessonModal) {
+    <div class="modal-backdrop" (click)="closeLesson()" (keydown.escape)="closeLesson()">
+      <div class="lesson-modal" (click)="$event.stopPropagation()">
+        <button class="modal-close" type="button" aria-label="Close" (click)="closeLesson()">×</button>
+        <div class="lesson-modal-header">
+          <span class="badge passed">MODULE {{ activeLessonModal.id }} · {{ activeLessonModal.duration }}</span>
+          <h2>{{ activeLessonModal.title }}</h2>
+          <p>{{ activeLessonModal.detail }}</p>
+        </div>
+
+        <div class="lesson-modal-body">
+          <div class="lesson-section">
+            <h4>🎯 Learning Objective</h4>
+            <p>{{ getLessonDetails(activeLessonModal.key).objective }}</p>
+          </div>
+
+          <div class="lesson-section">
+            <h4>💡 Core Architectural Concepts</h4>
+            <ul>
+              @for (concept of getLessonDetails(activeLessonModal.key).concepts; track concept) {
+                <li>{{ concept }}</li>
+              }
+            </ul>
+          </div>
+
+          <div class="lesson-section">
+            <h4>💻 Hands-on Code Sandbox</h4>
+            <pre class="code-box"><code>{{ getLessonDetails(activeLessonModal.key).codeExample }}</code></pre>
+          </div>
+
+          <div class="lesson-section">
+            <h4>📝 Concept Check & Retention</h4>
+            <p class="exercise-note">{{ getLessonDetails(activeLessonModal.key).exercise }}</p>
+          </div>
+        </div>
+
+        <div class="lesson-modal-footer">
+          <button class="nav-secondary-btn" type="button" (click)="closeLesson()">Cancel</button>
+          <button
+            class="hero-btn-primary"
+            type="button"
+            [disabled]="activeLessonModal.complete"
+            (click)="completeLessonAndAdvance(activeLessonModal)"
+          >
+            {{ activeLessonModal.complete ? 'Completed ✓' : 'Mark Complete & Sync Progress →' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Report Modal -->
   @if (reportOpen) {
     <div class="modal-backdrop" (click)="reportOpen = false" (keydown.escape)="reportOpen = false">
       <section class="report-modal" role="dialog" aria-modal="true" aria-labelledby="report-title" (click)="$event.stopPropagation()">

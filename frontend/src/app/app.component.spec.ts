@@ -82,13 +82,25 @@ describe('AppComponent Enterprise Edutech Platform Tests', () => {
       'ensureUserProfile',
       'getRole',
       'watchProgress',
-      'getIdToken'
+      'getIdToken',
+      'saveCourseToFirestore',
+      'deleteCourseFromFirestore',
+      'saveQuizResultToFirestore',
+      'updateUserRoleInFirestore',
+      'saveProgressToFirestore',
+      'saveInquiry'
     ], {
       isConfigured: true
     });
 
     mockFirebaseClient.signOut.and.returnValue(Promise.resolve());
     mockFirebaseClient.getCurrentUser.and.returnValue(Promise.resolve(null));
+    mockFirebaseClient.saveCourseToFirestore.and.returnValue(Promise.resolve());
+    mockFirebaseClient.deleteCourseFromFirestore.and.returnValue(Promise.resolve());
+    mockFirebaseClient.saveQuizResultToFirestore.and.returnValue(Promise.resolve());
+    mockFirebaseClient.updateUserRoleInFirestore.and.returnValue(Promise.resolve());
+    mockFirebaseClient.saveProgressToFirestore.and.returnValue(Promise.resolve());
+    mockFirebaseClient.saveInquiry.and.returnValue(Promise.resolve(true));
 
     await TestBed.configureTestingModule({
       imports: [AppComponent],
@@ -192,14 +204,44 @@ describe('AppComponent Enterprise Edutech Platform Tests', () => {
     expect(mockPlatformApi.updateUserRole).toHaveBeenCalledWith('user-xyz', 'teacher');
   });
 
-  it('handles provider sign-in gracefully with fallback when provider window closes', async () => {
+  it('handles provider sign-in gracefully and opens Google account selector', async () => {
     mockFirebaseClient.signIn.and.rejectWith(new Error('auth/popup-closed-by-user'));
 
     await component.signInWithProvider('google');
 
+    expect(component.showGoogleAccountPicker).toBeTrue();
+    expect(component.notificationMessage).toContain('Select your Google identity');
+
+    // Select account
+    component.selectGoogleAccount(component.googleAccounts[0]);
     expect(component.authenticated).toBeTrue();
+    expect(component.currentUserName).toBe('Rahul Dasari');
     expect(component.role).toBe('student');
-    expect(component.notificationMessage).toContain('Opening interactive workspace');
+  });
+
+  it('opens interactive lesson modal and marks complete', async () => {
+    component.signIn('student');
+    const lesson = component.lessons[0];
+    component.openLesson(lesson);
+    expect(component.activeLessonModal).toBe(lesson);
+
+    await component.completeLessonAndAdvance(lesson);
+    expect(component.activeLessonModal).toBeNull();
+    expect(component.completedLessons).toBeGreaterThan(0);
+  });
+
+  it('submits enterprise contact form to Firestore', async () => {
+    component.contactForm = {
+      name: 'Dr. Jane Smith',
+      email: 'jane.smith@mit.edu',
+      organization: 'MIT EECS',
+      cohortSize: '50-250 learners',
+      message: 'Interested in Gemini-powered curriculum integration.'
+    };
+
+    await component.submitContactForm();
+    expect(component.contactSubmitted).toBeTrue();
+    expect(mockFirebaseClient.saveInquiry).toHaveBeenCalledWith(component.contactForm);
   });
 
   it('signs out and resets workspace state cleanly', async () => {
