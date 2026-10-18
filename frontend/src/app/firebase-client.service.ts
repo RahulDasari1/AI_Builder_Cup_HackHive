@@ -229,6 +229,45 @@ export class FirebaseClientService {
     }
   }
 
+  async watchCourses(
+    onValue: (courses: Record<string, unknown>[]) => void,
+    onError: (error: Error) => void
+  ): Promise<() => void> {
+    if (!this.isConfigured) return () => {};
+    try {
+      const { collection, getFirestore, onSnapshot } = await import('firebase/firestore');
+      const db = getFirestore(await this.firebaseApp());
+      return onSnapshot(
+        collection(db, 'Courses'),
+        (snapshot) => onValue(snapshot.docs.map((document) => ({ id: document.id, ...document.data() }))),
+        onError
+      );
+    } catch (err) {
+      onError(err as Error);
+      return () => {};
+    }
+  }
+
+  async saveAgentTraceToFirestore(trace: {
+    agentName: string;
+    goal: string;
+    toolCalls: string[];
+    status: string;
+    result: string;
+  }): Promise<void> {
+    if (!this.isConfigured) return;
+    try {
+      const { addDoc, collection, getFirestore, serverTimestamp } = await import('firebase/firestore');
+      const db = getFirestore(await this.firebaseApp());
+      await addDoc(collection(db, 'AgentTraces'), {
+        ...trace,
+        createdAt: serverTimestamp()
+      });
+    } catch {
+      // Graceful offline tolerance
+    }
+  }
+
   async getIdToken(): Promise<string | undefined> {
     if (!this.isConfigured) return undefined;
     try {

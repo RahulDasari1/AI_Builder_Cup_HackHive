@@ -88,7 +88,8 @@ describe('AppComponent Enterprise Edutech Platform Tests', () => {
       'saveQuizResultToFirestore',
       'updateUserRoleInFirestore',
       'saveProgressToFirestore',
-      'saveInquiry'
+      'saveInquiry',
+      'saveAgentTraceToFirestore'
     ], {
       isConfigured: true
     });
@@ -209,14 +210,23 @@ describe('AppComponent Enterprise Edutech Platform Tests', () => {
 
     await component.signInWithProvider('google');
 
-    expect(component.showGoogleAccountPicker).toBeTrue();
-    expect(component.notificationMessage).toContain('Select your Google identity');
+    expect(component.showGoogleSignInScreen).toBeTrue();
 
     // Select account
     component.selectGoogleAccount(component.googleAccounts[0]);
     expect(component.authenticated).toBeTrue();
-    expect(component.currentUserName).toBe('Rahul Dasari');
+    expect(component.currentUserName).toBe('Alex Rivera');
     expect(component.role).toBe('student');
+  });
+
+  it('runs autonomous agentic AI workflow with ReAct trace and Firestore injection', async () => {
+    component.signIn('student');
+    const workflow = component.agentWorkflows[0];
+    await component.runAutonomousAgentWorkflow(workflow.id, 'Bridge regularization gap');
+
+    expect(component.agentExecutionSteps.length).toBe(4);
+    expect(component.agentFinalOutput).toContain('Multi-Agent Autonomous Goal Completed');
+    expect(component.lessons.some(l => l.key === 'regularization-dropout')).toBeTrue();
   });
 
   it('opens interactive lesson modal and marks complete', async () => {
