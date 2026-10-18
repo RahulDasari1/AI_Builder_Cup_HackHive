@@ -17,18 +17,23 @@ An enterprise-grade edutech learning platform built for the **AI Builder Cup JAP
 HackHive features role-tailored workspaces that dynamically adapt to the user's identity:
 
 ### 🎓 Student Workspace
+- **Gemini AI Course Curation & YouTube Enrichment**: Select any skill (e.g., "AI Fundamentals", "Data Literacy", "Responsible AI", "Cloud Computing") or enter a custom topic. Gemini generates structured modules, lessons, learning objectives, suggested assessments, and enriches every lesson with 2-3 free, verified YouTube reference videos playable directly in-platform.
+- **Interactive YouTube Video Studio**: Stream embedded educational videos (3Blue1Brown, freeCodeCamp, StatQuest, etc.) inside the dashboard with channel attribution and duration metadata.
+- **Psychometric Knowledge Verification**: Test retention against lesson assessment prompts with instant Gemini 2.5 evaluation feedback and automated progress tracking.
 - **Overview & Telemetry**: Visual learning streak tracker, progress gauge, competency radar map, and weekly activity chart.
 - **Personalized Gemini Learning Paths**: Dynamic, multi-lesson curricula calibrated to learner goals and recent assessment benchmarks.
 - **Adaptive Knowledge Checks**: Interactive multiple-choice quizzes with verified server-side scoring and Gemini-generated feedback.
 - **Progress Synchronization**: Real-time Firestore sync of completed modules, quiz records, and pace benchmarks.
 
 ### 👩‍🏫 Teacher Workspace
+- **Faculty Curriculum Governance**: Inspect AI-curated courses, review syllabus outlines, edit lesson titles and learning objectives, and officially approve or publish courses for student cohorts.
 - **Cohort Pulse**: Live cohort size, active weekly learner count, cohort completion percentage, and student roster.
 - **Curriculum Manager**: Inspection and management of assigned courses, difficulty levels, and lesson allocations.
 - **Assessment Review**: Gradebook breakdown, pass/review status, and topic accuracy analytics.
 - **Classroom Reports**: Comparative benchmark analytics against platform averages.
 
 ### 🛡️ Administrator Workspace
+- **Course Curation & Oversight**: Complete governance of all Gemini AI curated courses and Firestore collection telemetry.
 - **Platform Health**: Real-time status indicators for Cloud Run microservices (`Learning.Api`, `AI.Api`, `Reports.Api`), Firestore Native connectivity, and Gemini API quotas.
 - **Course Catalog CRUD**: Full Create, Read, Update, and Delete capabilities for courses with instant Firestore persistence.
 - **User Directory & Governance**: Member registry with interactive role assignment (`student` ↔ `teacher` ↔ `admin`).

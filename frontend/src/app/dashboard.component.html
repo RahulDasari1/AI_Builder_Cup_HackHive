@@ -674,18 +674,21 @@
       <nav class="side-nav" aria-label="Main navigation">
         @if (role === 'student') {
           <button [class.active]="activeTab === 'Overview'" (click)="selectTab('Overview')"><span class="nav-symbol">◫</span>Overview</button>
+          <button [class.active]="activeTab === 'Curated Courses'" (click)="selectTab('Curated Courses')"><span class="nav-symbol">🎓</span>Curated Courses <span class="nav-count">{{ curatedCourses.length }}</span></button>
           <button [class.active]="activeTab === 'Agentic AI'" (click)="selectTab('Agentic AI')"><span class="nav-symbol">✨</span>Agentic AI Studio</button>
           <button [class.active]="activeTab === 'My learning'" (click)="selectTab('My learning')"><span class="nav-symbol">▤</span>My learning <span class="nav-count">{{ lessons.length }}</span></button>
           <button [class.active]="activeTab === 'Assessments'" (click)="selectTab('Assessments')"><span class="nav-symbol">◉</span>Assessments</button>
           <button [class.active]="activeTab === 'Reports'" (click)="selectTab('Reports')"><span class="nav-symbol">▥</span>Reports</button>
         } @else if (role === 'teacher') {
           <button [class.active]="activeTab === 'Cohort Pulse'" (click)="selectTab('Cohort Pulse')"><span class="nav-symbol">◫</span>Cohort Pulse</button>
+          <button [class.active]="activeTab === 'Curated Courses'" (click)="selectTab('Curated Courses')"><span class="nav-symbol">🎓</span>Curriculum Curation <span class="nav-count">{{ curatedCourses.length }}</span></button>
           <button [class.active]="activeTab === 'Agentic AI'" (click)="selectTab('Agentic AI')"><span class="nav-symbol">✨</span>Curriculum Architect</button>
           <button [class.active]="activeTab === 'Curriculum Manager'" (click)="selectTab('Curriculum Manager')"><span class="nav-symbol">▤</span>Curriculum Manager</button>
           <button [class.active]="activeTab === 'Assessment Review'" (click)="selectTab('Assessment Review')"><span class="nav-symbol">◉</span>Assessment Review</button>
           <button [class.active]="activeTab === 'Class Reports'" (click)="selectTab('Class Reports')"><span class="nav-symbol">▥</span>Class Reports</button>
         } @else {
           <button [class.active]="activeTab === 'Platform Health'" (click)="selectTab('Platform Health')"><span class="nav-symbol">◫</span>Platform Health</button>
+          <button [class.active]="activeTab === 'Curated Courses'" (click)="selectTab('Curated Courses')"><span class="nav-symbol">🎓</span>Course Curation <span class="nav-count">{{ curatedCourses.length }}</span></button>
           <button [class.active]="activeTab === 'Agentic AI'" (click)="selectTab('Agentic AI')"><span class="nav-symbol">✨</span>Agentic Telemetry</button>
           <button [class.active]="activeTab === 'Course Catalog'" (click)="selectTab('Course Catalog')"><span class="nav-symbol">▤</span>Course Catalog</button>
           <button [class.active]="activeTab === 'User Directory'" (click)="selectTab('User Directory')"><span class="nav-symbol">◉</span>User Directory</button>
@@ -878,8 +881,290 @@
           </section>
         }
 
+        <!-- ======================= GEMINI AI CURATED COURSES WITH YOUTUBE ENRICHMENT ======================= -->
+        @if (activeTab === 'Curated Courses') {
+          <section class="curated-courses-section">
+            <!-- Header Card -->
+            <div class="curated-header-card">
+              <div class="curated-header-badge">
+                <span class="sparkle-icon">✨</span>
+                <span>GEMINI 2.5 · AI CURRICULUM ARCHITECT & YOUTUBE ENRICHMENT</span>
+              </div>
+              <h2 class="curated-title">Dynamic Structured Course Curation</h2>
+              <p class="curated-subtitle">
+                Select any skill or input a custom topic. Gemini AI curates structured multi-module courses with learning objectives,
+                suggested assessments, and verified free YouTube reference videos. All courses and learner progress synchronize to Cloud Firestore in real time.
+              </p>
+
+              <!-- Topic Selection Hub -->
+              <div class="topic-selection-hub">
+                <span class="topic-label">Select Skill or Learning Goal:</span>
+                <div class="topic-chips-row">
+                  @for (topic of curatedTopics; track topic) {
+                    <button
+                      type="button"
+                      class="topic-chip-btn"
+                      [class.active]="selectedCuratedTopic === topic"
+                      (click)="selectCuratedTopic(topic)"
+                    >
+                      {{ topic }}
+                    </button>
+                  }
+                </div>
+
+                <!-- Custom Topic Generator Bar -->
+                <div class="custom-curation-bar">
+                  <input
+                    type="text"
+                    class="custom-topic-input"
+                    [(ngModel)]="customCuratedTopicInput"
+                    placeholder="Or enter any custom skill (e.g. Quantum Computing, Kubernetes, Cybersecurity Threat Modeling)..."
+                    (keydown.enter)="curateNewCourse()"
+                  />
+                  <button
+                    type="button"
+                    class="curate-action-btn"
+                    [disabled]="isCuratingCourse || (!customCuratedTopicInput.trim() && !selectedCuratedTopic)"
+                    (click)="curateNewCourse()"
+                  >
+                    @if (isCuratingCourse) {
+                      <span class="spinner-mini"></span> Curating Course...
+                    } @else {
+                      <span>✨ Curate with Gemini AI</span>
+                    }
+                  </button>
+                </div>
+
+                @if (isCuratingCourse) {
+                  <div class="curation-streaming-status">
+                    <span class="pulse-dot"></span>
+                    <span>{{ curationStatusMessage }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Curated Courses Shelf Tabs -->
+            <div class="curated-catalog-shelf">
+              <span class="shelf-label">AVAILABLE CURATED COURSES ({{ curatedCourses.length }}):</span>
+              <div class="catalog-cards-row">
+                @for (c of curatedCourses; track c.id) {
+                  <button
+                    type="button"
+                    class="course-tab-card"
+                    [class.selected]="selectedCuratedCourse?.id === c.id"
+                    (click)="selectCuratedCourse(c)"
+                  >
+                    <div class="card-top-meta">
+                      <span class="c-topic">{{ c.topic }}</span>
+                      <span class="c-status-pill" [class.published]="c.status === 'published'" [class.approved]="c.status === 'approved'">
+                        {{ c.status === 'published' ? '● Published' : (c.status === 'approved' ? '✔ Approved' : '⏳ In Review') }}
+                      </span>
+                    </div>
+                    <h4>{{ c.title }}</h4>
+                    <div class="card-bottom-meta">
+                      <span>⏱ {{ c.estimatedHours }}h</span>
+                      <span>📊 {{ c.difficulty }}</span>
+                      @if (role === 'student') {
+                        <span class="progress-preview">{{ getCuratedCourseProgressPercent(c) }}% Complete</span>
+                      }
+                    </div>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Active Curated Course Detail View -->
+            @if (selectedCuratedCourse) {
+              <div class="active-course-canvas">
+                <!-- Course Overview Banner -->
+                <div class="course-meta-banner">
+                  <div class="meta-headline-col">
+                    <div class="tags-row">
+                      <span class="tag-chip topic-tag">{{ selectedCuratedCourse.topic }}</span>
+                      <span class="tag-chip difficulty-tag">{{ selectedCuratedCourse.difficulty }}</span>
+                      <span class="tag-chip duration-tag">⏱ ~{{ selectedCuratedCourse.estimatedHours }} Hours Total</span>
+                      <span class="status-badge" [class.badge-pub]="selectedCuratedCourse.status === 'published'">
+                        Status: <b>{{ selectedCuratedCourse.status | uppercase }}</b>
+                      </span>
+                      @if (selectedCuratedCourse.approvedBy) {
+                        <span class="approver-tag">Approved by: {{ selectedCuratedCourse.approvedBy }}</span>
+                      }
+                    </div>
+                    <h3 class="active-course-title">{{ selectedCuratedCourse.title }}</h3>
+                    <p class="active-course-desc">{{ selectedCuratedCourse.overview }}</p>
+                    <p class="audience-note">Target Audience: <b>{{ selectedCuratedCourse.targetAudience }}</b></p>
+                  </div>
+
+                  <!-- Role-Based Action Header (Student progress or Teacher Approval) -->
+                  <div class="role-action-col">
+                    @if (role === 'student') {
+                      <div class="student-progress-box">
+                        <div class="progress-number-row">
+                          <span class="p-title">Course Mastery</span>
+                          <strong class="p-val">{{ getCuratedCourseProgressPercent(selectedCuratedCourse) }}%</strong>
+                        </div>
+                        <div class="progress-bar-track">
+                          <div class="progress-bar-fill" [style.width.%]="getCuratedCourseProgressPercent(selectedCuratedCourse)"></div>
+                        </div>
+                        <small class="progress-subtext">Check off completed lessons & assessments to earn certification.</small>
+                      </div>
+                    } @else if (role === 'teacher' || role === 'admin') {
+                      <div class="teacher-approval-box">
+                        <strong>Faculty Curriculum Governance</strong>
+                        <p>Approve this AI-curated syllabus for student enrollment or edit module objectives:</p>
+                        <div class="approval-btn-group">
+                          <button
+                            type="button"
+                            class="approve-btn"
+                            [disabled]="selectedCuratedCourse.status === 'approved'"
+                            (click)="updateCuratedCourseApproval(selectedCuratedCourse, 'approved')"
+                          >
+                            ✔ Approve Syllabus
+                          </button>
+                          <button
+                            type="button"
+                            class="publish-btn"
+                            [disabled]="selectedCuratedCourse.status === 'published'"
+                            (click)="updateCuratedCourseApproval(selectedCuratedCourse, 'published')"
+                          >
+                            🚀 Publish to Students
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Course Modules & Lessons Stack -->
+                <div class="modules-stack">
+                  @for (mod of selectedCuratedCourse.modules; track mod.id; let mIdx = $index) {
+                    <div class="curated-module-block">
+                      <div class="module-title-bar">
+                        <div class="mod-num">0{{ mIdx + 1 }}</div>
+                        <div class="mod-details">
+                          <h4>{{ mod.title }}</h4>
+                          <p>{{ mod.summary }}</p>
+                        </div>
+                        <span class="mod-count">{{ mod.lessons.length }} Lessons</span>
+                      </div>
+
+                      <div class="module-lessons-container">
+                        @for (les of mod.lessons; track les.id; let lIdx = $index) {
+                          <div class="curated-lesson-card" [class.completed]="isCuratedLessonComplete(les.id)">
+                            <!-- Lesson Header -->
+                            <div class="lesson-header-row">
+                              <div class="lesson-title-area">
+                                <span class="lesson-index-badge">{{ mIdx + 1 }}.{{ lIdx + 1 }}</span>
+                                <div>
+                                  <h5>{{ les.title }}</h5>
+                                  <span class="lesson-duration">⏱ {{ les.durationMinutes }} min estimated study</span>
+                                </div>
+                              </div>
+
+                              <div class="lesson-actions-area">
+                                @if (role === 'student') {
+                                  <button
+                                    type="button"
+                                    class="completion-toggle-btn"
+                                    [class.done]="isCuratedLessonComplete(les.id)"
+                                    (click)="toggleCuratedLessonComplete(les)"
+                                  >
+                                    {{ isCuratedLessonComplete(les.id) ? '✔ Completed' : '○ Mark Complete' }}
+                                  </button>
+                                } @else {
+                                  <button
+                                    type="button"
+                                    class="edit-lesson-btn"
+                                    (click)="openEditLessonModal(les)"
+                                    title="Edit Lesson Title & Objectives"
+                                  >
+                                    ✏️ Edit Lesson
+                                  </button>
+                                }
+                              </div>
+                            </div>
+
+                            <!-- Description -->
+                            <p class="lesson-desc-text">{{ les.description }}</p>
+
+                            <!-- Learning Objectives -->
+                            <div class="lesson-objectives-box">
+                              <span class="objectives-title">🎯 Core Learning Objectives:</span>
+                              <ul class="objectives-list">
+                                @for (obj of les.objectives; track obj) {
+                                  <li>{{ obj }}</li>
+                                }
+                              </ul>
+                            </div>
+
+                            <!-- Suggested Assessment Prompt -->
+                            <div class="assessment-prompt-banner">
+                              <div class="prompt-content">
+                                <span class="prompt-icon">💡</span>
+                                <div>
+                                  <strong>Suggested Assessment Prompt:</strong>
+                                  <p>{{ les.assessmentPrompt }}</p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                class="take-assessment-btn"
+                                (click)="openAssessmentModal(les)"
+                              >
+                                Test Understanding & Submit Answer ➔
+                              </button>
+                            </div>
+
+                            <!-- YouTube Reference Videos Shelf -->
+                            <div class="youtube-enrichment-shelf">
+                              <div class="shelf-header">
+                                <span class="yt-logo-icon">▶</span>
+                                <strong>Free YouTube Educational References ({{ les.videos.length }} Videos):</strong>
+                              </div>
+
+                              <div class="yt-videos-grid">
+                                @for (vid of les.videos; track vid.id) {
+                                  <div class="yt-card">
+                                    <div class="yt-thumb-container" (click)="openVideoModal(vid)">
+                                      <img [src]="vid.thumbnailUrl" [alt]="vid.title" class="yt-thumbnail" loading="lazy" />
+                                      <div class="yt-play-overlay">
+                                        <div class="play-circle">▶</div>
+                                      </div>
+                                      <span class="yt-duration">{{ vid.duration }}</span>
+                                    </div>
+
+                                    <div class="yt-info">
+                                      <h6 class="yt-title" (click)="openVideoModal(vid)" [title]="vid.title">{{ vid.title }}</h6>
+                                      <div class="yt-meta">
+                                        <span class="yt-channel">{{ vid.channel }}</span>
+                                        <div class="yt-actions">
+                                          <button type="button" class="yt-watch-btn" (click)="openVideoModal(vid)">
+                                            Play in Studio
+                                          </button>
+                                          <a [href]="vid.url" target="_blank" rel="noopener" class="yt-external-link" title="Open on YouTube">
+                                            ↗
+                                          </a>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                }
+                              </div>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </section>
+        }
+
         <!-- ======================= STUDENT WORKSPACE ======================= -->
-        @if (role === 'student' && activeTab !== 'Agentic AI') {
+        @if (role === 'student' && activeTab !== 'Agentic AI' && activeTab !== 'Curated Courses') {
           @if (activeTab === 'Overview') {
             <section class="metrics-grid" aria-label="Learning statistics">
               <article class="metric"><div class="metric-top"><span>LEARNING STREAK</span><span class="metric-icon coral">✳</span></div><div class="metric-value">04 <small>days</small></div><div class="metric-foot"><span class="trend-up">↗ 2 days</span> vs last week</div></article>
@@ -1045,7 +1330,7 @@
         }
 
         <!-- ======================= TEACHER WORKSPACE ======================= -->
-        @if (role === 'teacher' && activeTab !== 'Agentic AI') {
+        @if (role === 'teacher' && activeTab !== 'Agentic AI' && activeTab !== 'Curated Courses') {
           @if (activeTab === 'Cohort Pulse') {
             <section class="metrics-grid">
               <article class="metric"><div class="metric-top"><span>COHORT SIZE</span><span class="metric-icon mint">◌</span></div><div class="metric-value">{{ cohortStats?.learnerCount || 28 }} <small>students</small></div><div class="metric-foot">Cohort: <strong>cohort-2026-japac</strong></div></article>
@@ -1124,7 +1409,7 @@
         }
 
         <!-- ======================= ADMIN WORKSPACE ======================= -->
-        @if (role === 'admin' && activeTab !== 'Agentic AI') {
+        @if (role === 'admin' && activeTab !== 'Agentic AI' && activeTab !== 'Curated Courses') {
           @if (activeTab === 'Platform Health') {
             <section class="metrics-grid">
               <article class="metric"><div class="metric-top"><span>LEARNING.API</span><span class="metric-icon mint">✓</span></div><div class="metric-value">Healthy <small>Cloud Run</small></div><div class="metric-foot">PORT 8080 · Auth JWT Active</div></article>
@@ -1366,6 +1651,134 @@
             <p>{{ agentFinalOutput }}</p>
           </div>
         }
+      </div>
+    </div>
+  }
+
+  <!-- YouTube Reference Video Player Modal -->
+  @if (activeVideoModal && safeVideoEmbedUrl) {
+    <div class="modal-backdrop" (click)="closeVideoModal()" (keydown.escape)="closeVideoModal()">
+      <div class="video-modal-window" (click)="$event.stopPropagation()">
+        <div class="video-modal-header">
+          <div class="video-title-cluster">
+            <span class="video-tag">▶ FREE YOUTUBE REFERENCE VIDEO</span>
+            <h3>{{ activeVideoModal.title }}</h3>
+            <span class="video-meta">Channel: <strong>{{ activeVideoModal.channel }}</strong> · Duration: {{ activeVideoModal.duration }}</span>
+          </div>
+          <button class="modal-close" type="button" aria-label="Close video" (click)="closeVideoModal()">×</button>
+        </div>
+
+        <div class="video-modal-body">
+          <div class="video-iframe-container">
+            <iframe
+              class="video-iframe"
+              [src]="safeVideoEmbedUrl"
+              title="{{ activeVideoModal.title }}"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen
+            ></iframe>
+          </div>
+          <div class="video-modal-actions">
+            <a [href]="activeVideoModal.url" target="_blank" rel="noopener noreferrer" class="yt-external-btn">
+              Open on YouTube ↗
+            </a>
+            <button class="hero-btn-primary" type="button" (click)="closeVideoModal()">
+              Done Watching ✓
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Interactive Assessment Evaluation Modal -->
+  @if (activeAssessmentLesson) {
+    <div class="modal-backdrop" (click)="closeAssessmentModal()" (keydown.escape)="closeAssessmentModal()">
+      <div class="assessment-modal-window" (click)="$event.stopPropagation()">
+        <div class="assessment-modal-header">
+          <div>
+            <span class="assessment-tag">📝 GEMINI AI KNOWLEDGE VERIFICATION</span>
+            <h3>{{ activeAssessmentLesson.title }}</h3>
+          </div>
+          <button class="modal-close" type="button" aria-label="Close assessment" (click)="closeAssessmentModal()">×</button>
+        </div>
+
+        <div class="assessment-modal-body">
+          <div class="prompt-box">
+            <strong>Suggested Assessment Challenge:</strong>
+            <p>{{ activeAssessmentLesson.assessmentPrompt }}</p>
+          </div>
+
+          <div class="form-group">
+            <label for="learnerAssessmentInput"><strong>Your Response / Solution / Code:</strong></label>
+            <textarea
+              id="learnerAssessmentInput"
+              class="assessment-textarea"
+              rows="5"
+              [(ngModel)]="assessmentSubmissionText"
+              placeholder="Explain the foundational architecture, mathematical mechanics, or write your implementation snippet here..."
+            ></textarea>
+          </div>
+
+          @if (assessmentFeedbackText) {
+            <div class="assessment-feedback-card">
+              <pre>{{ assessmentFeedbackText }}</pre>
+            </div>
+          }
+
+          <div class="assessment-modal-actions">
+            <button class="nav-secondary-btn" type="button" (click)="closeAssessmentModal()">Close</button>
+            <button
+              class="hero-btn-primary"
+              type="button"
+              [disabled]="isEvaluatingAssessment || !assessmentSubmissionText.trim()"
+              (click)="submitAssessmentResponse()"
+            >
+              {{ isEvaluatingAssessment ? 'Evaluating with Gemini 2.5...' : 'Submit to Gemini for Evaluation ✨' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Faculty / Teacher Lesson Syllabus Editor Modal -->
+  @if (editingLessonModal) {
+    <div class="modal-backdrop" (click)="closeEditLessonModal()" (keydown.escape)="closeEditLessonModal()">
+      <div class="edit-lesson-modal-window" (click)="$event.stopPropagation()">
+        <div class="edit-modal-header">
+          <div>
+            <span class="faculty-tag">🎓 FACULTY CURRICULUM EDITOR</span>
+            <h3>Edit Lesson: {{ editingLessonModal.title }}</h3>
+          </div>
+          <button class="modal-close" type="button" aria-label="Close editor" (click)="closeEditLessonModal()">×</button>
+        </div>
+
+        <div class="edit-modal-body">
+          <div class="form-group">
+            <label for="editLessonTitle">Lesson Title</label>
+            <input id="editLessonTitle" type="text" class="form-control" [(ngModel)]="editingLessonTitle" />
+          </div>
+
+          <div class="form-group">
+            <label for="editLessonDesc">AI Description</label>
+            <textarea id="editLessonDesc" class="form-control" rows="3" [(ngModel)]="editingLessonDescription"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="editLessonObjs">Learning Objectives (one per line)</label>
+            <textarea id="editLessonObjs" class="form-control" rows="4" [(ngModel)]="editingLessonObjectivesText"></textarea>
+          </div>
+
+          <div class="edit-modal-actions">
+            <button class="nav-secondary-btn" type="button" (click)="closeEditLessonModal()">Cancel</button>
+            <button class="hero-btn-primary" type="button" (click)="saveEditedLesson()">
+              Save Changes to Firestore 💾
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   }

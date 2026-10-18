@@ -52,6 +52,19 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    match /CuratedCourses/{courseId} {
+      allow read: if true;
+      allow write: if signedIn();
+    }
+
+    match /CuratedProgress/{progressId} {
+      allow read, write: if signedIn();
+    }
+
+    match /AgentTraces/{traceId} {
+      allow read, write: if signedIn();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

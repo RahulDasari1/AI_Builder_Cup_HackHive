@@ -268,6 +268,96 @@ export class FirebaseClientService {
     }
   }
 
+  async saveCuratedCourseToFirestore(course: Record<string, unknown>): Promise<void> {
+    if (!this.isConfigured) return;
+    try {
+      const { doc, getFirestore, serverTimestamp, setDoc } = await import('firebase/firestore');
+      const db = getFirestore(await this.firebaseApp());
+      await setDoc(doc(db, 'CuratedCourses', course['id'] as string), {
+        ...course,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    } catch {
+      // Offline tolerance
+    }
+  }
+
+  async watchCuratedCourses(
+    onValue: (courses: Record<string, unknown>[]) => void,
+    onError: (error: Error) => void
+  ): Promise<() => void> {
+    if (!this.isConfigured) return () => {};
+    try {
+      const { collection, getFirestore, onSnapshot } = await import('firebase/firestore');
+      const db = getFirestore(await this.firebaseApp());
+      return onSnapshot(
+        collection(db, 'CuratedCourses'),
+        (snapshot) => onValue(snapshot.docs.map((document) => ({ id: document.id, ...document.data() }))),
+        onError
+      );
+    } catch (err) {
+      onError(err as Error);
+      return () => {};
+    }
+  }
+
+  async updateCuratedCourseStatus(courseId: string, status: string, approverName?: string): Promise<void> {
+    if (!this.isConfigured) return;
+    try {
+      const { doc, getFirestore, serverTimestamp, updateDoc } = await import('firebase/firestore');
+      const db = getFirestore(await this.firebaseApp());
+      await updateDoc(doc(db, 'CuratedCourses', courseId), {
+        status,
+        approvedBy: approverName || 'Faculty Lead',
+        updatedAt: serverTimestamp()
+      });
+    } catch {
+      // Offline tolerance
+    }
+  }
+
+  async saveCuratedProgress(uid: string, courseId: string, completedLessonIds: string[]): Promise<void> {
+    if (!this.isConfigured) return;
+    try {
+      const { doc, getFirestore, serverTimestamp, setDoc } = await import('firebase/firestore');
+      const db = getFirestore(await this.firebaseApp());
+      await setDoc(doc(db, 'CuratedProgress', `${uid}_${courseId}`), {
+        uid,
+        courseId,
+        completedLessonIds,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    } catch {
+      // Offline tolerance
+    }
+  }
+
+  async watchCuratedProgress(
+    uid: string,
+    courseId: string,
+    onValue: (completedIds: string[]) => void
+  ): Promise<() => void> {
+    if (!this.isConfigured) return () => {};
+    try {
+      const { doc, getFirestore, onSnapshot } = await import('firebase/firestore');
+      const db = getFirestore(await this.firebaseApp());
+      return onSnapshot(
+        doc(db, 'CuratedProgress', `${uid}_${courseId}`),
+        (snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.data();
+            onValue((data?.['completedLessonIds'] as string[]) || []);
+          } else {
+            onValue([]);
+          }
+        },
+        () => {}
+      );
+    } catch {
+      return () => {};
+    }
+  }
+
   async getIdToken(): Promise<string | undefined> {
     if (!this.isConfigured) return undefined;
     try {

@@ -23,7 +23,9 @@ describe('AppComponent Enterprise Edutech Platform Tests', () => {
       'deleteCourse',
       'getUsers',
       'updateUserRole',
-      'getCohortReport'
+      'getCohortReport',
+      'getPresetCuratedCourses',
+      'curateCourseWithGemini'
     ]);
 
     mockPlatformApi.getCourses.and.returnValue(Promise.resolve([
@@ -38,6 +40,92 @@ describe('AppComponent Enterprise Edutech Platform Tests', () => {
       activeLearners: 20,
       averageAssessmentScore: 82,
       courseProgressRecords: 95
+    }));
+    mockPlatformApi.getPresetCuratedCourses.and.returnValue([
+      {
+        id: 'curated-ai-fundamentals',
+        title: 'AI Fundamentals & Deep Learning Systems',
+        topic: 'AI Fundamentals',
+        overview: 'Deep dive into neural networks',
+        targetAudience: 'Learners',
+        difficulty: 'Beginner to Intermediate',
+        estimatedHours: 6,
+        status: 'published',
+        approvedBy: 'Dr. Elena Vance',
+        createdAt: '2026-10-18T00:00:00Z',
+        updatedAt: '2026-10-18T00:00:00Z',
+        modules: [
+          {
+            id: 'mod-1',
+            title: 'Neural Foundations',
+            summary: 'Core perceptrons',
+            lessons: [
+              {
+                id: 'les-1',
+                title: 'Perceptrons to Multilayer Networks',
+                description: 'Foundation lesson',
+                objectives: ['Learn forward pass', 'Understand backpropagation'],
+                suggestedAssessment: 'Explain gradient descent step.',
+                durationMinutes: 20,
+                videos: [
+                  {
+                    id: 'aircAruvnKk',
+                    title: 'Neural Networks by 3Blue1Brown',
+                    channel: '3Blue1Brown',
+                    channelTitle: '3Blue1Brown',
+                    duration: '19:13',
+                    url: 'https://www.youtube.com/watch?v=aircAruvnKk',
+                    embedUrl: 'https://www.youtube.com/embed/aircAruvnKk',
+                    thumbnailUrl: 'https://img.youtube.com/vi/aircAruvnKk/hqdefault.jpg'
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]);
+    mockPlatformApi.curateCourseWithGemini.and.callFake((topic: string) => Promise.resolve({
+      id: `curated-${topic.toLowerCase().replace(/\s+/g, '-')}`,
+      title: `${topic} Masterclass`,
+      topic,
+      overview: `Gemini generated overview for ${topic}`,
+      targetAudience: 'Students and engineers',
+      difficulty: 'Intermediate',
+      estimatedHours: 5,
+      status: 'approved',
+      approvedBy: 'Gemini Curriculum Architect',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      modules: [
+        {
+          id: 'gen-mod-1',
+          title: `Core Foundations of ${topic}`,
+          summary: 'Detailed fundamentals',
+          lessons: [
+            {
+              id: 'gen-les-1',
+              title: `Architectural Principles of ${topic}`,
+              description: 'Generated lesson',
+              objectives: ['Objective 1', 'Objective 2'],
+              suggestedAssessment: 'Explain key mechanics.',
+              durationMinutes: 25,
+              videos: [
+                {
+                  id: 'aircAruvnKk',
+                  title: 'Deep Learning Basics',
+                  channel: '3Blue1Brown',
+                  channelTitle: '3Blue1Brown',
+                  duration: '19:13',
+                  url: 'https://www.youtube.com/watch?v=aircAruvnKk',
+                  embedUrl: 'https://www.youtube.com/embed/aircAruvnKk',
+                  thumbnailUrl: 'https://img.youtube.com/vi/aircAruvnKk/hqdefault.jpg'
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }));
     mockPlatformApi.generatePath.and.returnValue(Promise.resolve({
       title: 'Adaptive AI Foundations',
@@ -89,7 +177,12 @@ describe('AppComponent Enterprise Edutech Platform Tests', () => {
       'updateUserRoleInFirestore',
       'saveProgressToFirestore',
       'saveInquiry',
-      'saveAgentTraceToFirestore'
+      'saveAgentTraceToFirestore',
+      'saveCuratedCourseToFirestore',
+      'watchCuratedCourses',
+      'updateCuratedCourseStatus',
+      'saveCuratedProgress',
+      'watchCuratedProgress'
     ], {
       isConfigured: true
     });
@@ -102,6 +195,11 @@ describe('AppComponent Enterprise Edutech Platform Tests', () => {
     mockFirebaseClient.updateUserRoleInFirestore.and.returnValue(Promise.resolve());
     mockFirebaseClient.saveProgressToFirestore.and.returnValue(Promise.resolve());
     mockFirebaseClient.saveInquiry.and.returnValue(Promise.resolve(true));
+    mockFirebaseClient.saveCuratedCourseToFirestore.and.returnValue(Promise.resolve());
+    mockFirebaseClient.watchCuratedCourses.and.returnValue(Promise.resolve(() => {}));
+    mockFirebaseClient.updateCuratedCourseStatus.and.returnValue(Promise.resolve());
+    mockFirebaseClient.saveCuratedProgress.and.returnValue(Promise.resolve());
+    mockFirebaseClient.watchCuratedProgress.and.returnValue(Promise.resolve(() => {}));
 
     await TestBed.configureTestingModule({
       imports: [AppComponent],
@@ -263,5 +361,92 @@ describe('AppComponent Enterprise Edutech Platform Tests', () => {
     expect(component.authenticated).toBeFalse();
     expect(component.role).toBe('student');
     expect(component.activeTab).toBe('Overview');
+  });
+
+  it('curates courses on initialization and sets selected course', async () => {
+    await component.loadInitialData();
+    expect(component.curatedCourses.length).toBeGreaterThan(0);
+    expect(component.selectedCuratedCourse).toBeDefined();
+    expect(component.selectedCuratedCourse?.modules[0].lessons[0].videos.length).toBeGreaterThan(0);
+  });
+
+  it('curates new course with Gemini AI and stores to Firestore', async () => {
+    component.signIn('student');
+    component.selectTab('Curated Courses');
+    await component.curateNewCourse('Quantum Machine Learning');
+
+    expect(component.selectedCuratedCourse?.title).toContain('Quantum Machine Learning Masterclass');
+    expect(mockPlatformApi.curateCourseWithGemini).toHaveBeenCalledWith('Quantum Machine Learning', 'AI Fundamentals');
+    expect(mockFirebaseClient.saveCuratedCourseToFirestore).toHaveBeenCalled();
+  });
+
+  it('opens and closes YouTube reference video player modal with sanitized URL', () => {
+    const video = {
+      id: 'aircAruvnKk',
+      title: 'Neural Networks by 3Blue1Brown',
+      channel: '3Blue1Brown',
+      channelTitle: '3Blue1Brown',
+      duration: '19:13',
+      url: 'https://www.youtube.com/watch?v=aircAruvnKk',
+      embedUrl: 'https://www.youtube.com/embed/aircAruvnKk',
+      thumbnailUrl: 'https://img.youtube.com/vi/aircAruvnKk/hqdefault.jpg'
+    };
+
+    component.openVideoModal(video);
+    expect(component.activeVideoModal).toBe(video);
+    expect(component.safeVideoEmbedUrl).toBeDefined();
+
+    component.closeVideoModal();
+    expect(component.activeVideoModal).toBeNull();
+    expect(component.safeVideoEmbedUrl).toBeNull();
+  });
+
+  it('allows student to toggle curated lesson completion and tracks progress percentage', async () => {
+    await component.loadInitialData();
+    const course = component.selectedCuratedCourse!;
+    const lesson = course.modules[0].lessons[0];
+
+    expect(component.isCuratedLessonComplete(lesson.id)).toBeFalse();
+    expect(component.getCuratedCourseProgressPercent(course)).toBe(0);
+
+    await component.toggleCuratedLessonComplete(lesson);
+    expect(component.isCuratedLessonComplete(lesson.id)).toBeTrue();
+    expect(component.getCuratedCourseProgressPercent(course)).toBe(100);
+    expect(mockFirebaseClient.saveCuratedProgress).toHaveBeenCalled();
+
+    await component.toggleCuratedLessonComplete(lesson);
+    expect(component.isCuratedLessonComplete(lesson.id)).toBeFalse();
+  });
+
+  it('allows teacher to approve and publish course status to Cloud Firestore', async () => {
+    component.signIn('teacher');
+    await component.loadInitialData();
+    const course = component.selectedCuratedCourse!;
+
+    await component.updateCuratedCourseApproval(course, 'approved');
+    expect(course.status).toBe('approved');
+    expect(course.approvedBy).toContain('Dr. Elena Vance');
+    expect(mockFirebaseClient.updateCuratedCourseStatus).toHaveBeenCalledWith(course.id, 'approved', jasmine.any(String));
+
+    await component.updateCuratedCourseApproval(course, 'published');
+    expect(course.status).toBe('published');
+    expect(mockFirebaseClient.updateCuratedCourseStatus).toHaveBeenCalledWith(course.id, 'published', jasmine.any(String));
+  });
+
+  it('evaluates student assessment response using Gemini AI and records mastery', async () => {
+    await component.loadInitialData();
+    const course = component.selectedCuratedCourse!;
+    const lesson = course.modules[0].lessons[0];
+
+    component.openAssessmentModal(lesson);
+    expect(component.activeAssessmentLesson).toBe(lesson);
+
+    component.assessmentSubmissionText = 'Gradient descent iteratively updates network weights in the direction opposite to the gradient of the loss function.';
+    await component.submitAssessmentResponse();
+
+    expect(component.assessmentFeedbackText).toContain('Gemini 2.5 Psychometric Evaluation');
+    expect(component.assessmentFeedbackText).toContain('94/100');
+    expect(component.isCuratedLessonComplete(lesson.id)).toBeTrue();
+    expect(mockFirebaseClient.saveCuratedProgress).toHaveBeenCalled();
   });
 });
